@@ -12,8 +12,8 @@
  * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
-#ifndef __LINUX_EDMA_H
-#define __LINUX_EDMA_H
+#ifndef __LINUX_EDMA_DMAENGINE_H
+#define __LINUX_EDMA_DMAENGINE_H
 
 struct dma_chan;
 

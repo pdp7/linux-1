@@ -23,7 +23,7 @@
 #include <sound/pcm_params.h>
 #include <sound/soc.h>
 #include <sound/dmaengine_pcm.h>
-#include <linux/edma.h>
+#include <linux/edma-dmaengine.h>
 
 #include "edma-pcm.h"
 

@@ -25,7 +25,7 @@
 #include <linux/platform_device.h>
 #include <linux/io.h>
 #include <linux/slab.h>
-#include <linux/edma.h>
+#include <linux/edma-dmaengine.h>
 #include <linux/dma-mapping.h>
 #include <linux/of_address.h>
 #include <linux/of_device.h>
