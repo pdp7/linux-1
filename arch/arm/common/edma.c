@@ -25,6 +25,7 @@
 #include <linux/platform_device.h>
 #include <linux/io.h>
 #include <linux/slab.h>
+#include <linux/edma.h>
 #include <linux/edma-dmaengine.h>
 #include <linux/dma-mapping.h>
 #include <linux/of_address.h>
@@ -32,8 +33,6 @@
 #include <linux/of_dma.h>
 #include <linux/of_irq.h>
 #include <linux/pm_runtime.h>
-
-#include <linux/platform_data/edma.h>
 
 /* Offsets matching "struct edmacc_param" */
 #define PARM_OPT		0x00
