@@ -160,10 +160,6 @@ static inline void edma_modify_array(unsigned ctlr, int offset, int i,
 {
 	edma_modify(ctlr, offset + (i << 2), and, or);
 }
-static inline void edma_or_array(unsigned ctlr, int offset, int i, unsigned or)
-{
-	edma_or(ctlr, offset + (i << 2), or);
-}
 static inline void edma_or_array2(unsigned ctlr, int offset, int i, int j,
 		unsigned or)
 {
@@ -173,10 +169,6 @@ static inline void edma_write_array2(unsigned ctlr, int offset, int i, int j,
 		unsigned val)
 {
 	edma_write(ctlr, offset + ((i*2 + j) << 2), val);
-}
-static inline unsigned int edma_shadow0_read(unsigned ctlr, int offset)
-{
-	return edma_read(ctlr, EDMA_SHADOW0 + offset);
 }
 static inline unsigned int edma_shadow0_read_array(unsigned ctlr, int offset,
 		int i)
