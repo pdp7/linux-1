@@ -26,14 +26,13 @@
 #include <linux/io.h>
 #include <linux/slab.h>
 #include <linux/edma.h>
+#include <linux/edma-dmaengine.h>
 #include <linux/dma-mapping.h>
 #include <linux/of_address.h>
 #include <linux/of_device.h>
 #include <linux/of_dma.h>
 #include <linux/of_irq.h>
 #include <linux/pm_runtime.h>
-
-#include <linux/platform_data/edma.h>
 
 /* Offsets matching "struct edmacc_param" */
 #define PARM_OPT		0x00
@@ -161,10 +160,6 @@ static inline void edma_modify_array(unsigned ctlr, int offset, int i,
 {
 	edma_modify(ctlr, offset + (i << 2), and, or);
 }
-static inline void edma_or_array(unsigned ctlr, int offset, int i, unsigned or)
-{
-	edma_or(ctlr, offset + (i << 2), or);
-}
 static inline void edma_or_array2(unsigned ctlr, int offset, int i, int j,
 		unsigned or)
 {
@@ -174,10 +169,6 @@ static inline void edma_write_array2(unsigned ctlr, int offset, int i, int j,
 		unsigned val)
 {
 	edma_write(ctlr, offset + ((i*2 + j) << 2), val);
-}
-static inline unsigned int edma_shadow0_read(unsigned ctlr, int offset)
-{
-	return edma_read(ctlr, EDMA_SHADOW0 + offset);
 }
 static inline unsigned int edma_shadow0_read_array(unsigned ctlr, int offset,
 		int i)

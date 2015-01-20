@@ -23,6 +23,7 @@
 #include <mach/serial.h>
 #include <mach/pm.h>
 #include <linux/platform_data/edma.h>
+#include <linux/edma.h>
 #include <linux/platform_data/i2c-davinci.h>
 #include <linux/platform_data/mmc-davinci.h>
 #include <linux/platform_data/usb-davinci.h>

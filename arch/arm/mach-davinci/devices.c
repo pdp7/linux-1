@@ -23,6 +23,7 @@
 #include <linux/platform_data/mmc-davinci.h>
 #include <mach/time.h>
 #include <linux/platform_data/edma.h>
+#include <linux/edma.h>
 
 
 #include "davinci.h"
