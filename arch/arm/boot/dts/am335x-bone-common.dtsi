@@ -3,6 +3,9 @@
  * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
  */
 
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/input/linux-event-codes.h>
+
 / {
 	cpus {
 		cpu@0 {
@@ -60,6 +63,46 @@
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
 	};
+
+	i2cmux_cape: i2cmux@1 {
+		compatible = "i2c-mux-gpio";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		mux-gpios = <&pca9534 0 GPIO_ACTIVE_LOW>;
+		i2c-parent = <&i2c1>;
+		idle-state = <1>;
+		status = "okay";
+
+		i2c@1 {
+			reg = <1>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			at24c32: at24c32@54 {
+				compatible = "atmel,24c32";
+				reg = <0x54>;
+				pagesize = <32>;
+				wp-gpios = <&pca9534 1 0>;
+			};
+
+			at24cs32: at24cs32@5c {
+				compatible = "atmel,24cs32";
+				reg = <0x5c>;
+			};
+		};
+
+		i2c@2 {
+			reg = <2>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			pca9535: pca9535@20 {
+				compatible = "nxp,pca9535";
+				reg = <0x20>;
+				#gpio-cells = <2>;
+			};
+		};
+	};
 };
 
 &am33xx_pinmux {
@@ -79,6 +122,13 @@
 		pinctrl-single,pins = <
 			AM33XX_PADCONF(AM335X_PIN_I2C0_SDA, PIN_INPUT_PULLUP, MUX_MODE0)	/* i2c0_sda.i2c0_sda */
 			AM33XX_PADCONF(AM335X_PIN_I2C0_SCL, PIN_INPUT_PULLUP, MUX_MODE0)	/* i2c0_scl.i2c0_scl */
+		>;
+	};
+
+	i2c1_pins: pinmux_i2c1_pins {
+		pinctrl-single,pins = <
+			AM33XX_IOPAD(0x958, PIN_INPUT_PULLUP | MUX_MODE2)
+			AM33XX_IOPAD(0x95c, PIN_INPUT_PULLUP | MUX_MODE2)
 		>;
 	};
 
@@ -246,6 +296,20 @@
 	};
 };
 
+&i2c1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c1_pins>;
+
+	status = "okay";
+	clock-frequency = <400000>;
+
+	pca9534: pca9534@21 {
+		compatible = "nxp,pca9534";
+		reg = <0x21>;
+		#gpio-cells = <2>;
+	};
+};
+
 &i2c2 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&i2c2_pins>;
@@ -253,43 +317,68 @@
 	status = "okay";
 	clock-frequency = <100000>;
 
-	cape_eeprom0: cape_eeprom0@54 {
-		compatible = "atmel,24c256";
-		reg = <0x54>;
-		#address-cells = <1>;
-		#size-cells = <1>;
-		cape0_data: cape_data@0 {
-			reg = <0 0x100>;
-		};
-	};
+	pmic: pmic@48 {
+		compatible = "maxim,max77650";
+		reg = <0x48>;
 
-	cape_eeprom1: cape_eeprom1@55 {
-		compatible = "atmel,24c256";
-		reg = <0x55>;
-		#address-cells = <1>;
-		#size-cells = <1>;
-		cape1_data: cape_data@0 {
-			reg = <0 0x100>;
-		};
-	};
+		interrupt-controller;
+		interrupt-parent = <&gpio2>;
+		#interrupt-cells = <2>;
+		interrupts = <3 IRQ_TYPE_LEVEL_LOW>;
 
-	cape_eeprom2: cape_eeprom2@56 {
-		compatible = "atmel,24c256";
-		reg = <0x56>;
-		#address-cells = <1>;
-		#size-cells = <1>;
-		cape2_data: cape_data@0 {
-			reg = <0 0x100>;
-		};
-	};
+		gpio-controller;
+		#gpio-cells = <2>;
+		gpio-line-names = "max77650-charger";
 
-	cape_eeprom3: cape_eeprom3@57 {
-		compatible = "atmel,24c256";
-		reg = <0x57>;
-		#address-cells = <1>;
-		#size-cells = <1>;
-		cape3_data: cape_data@0 {
-			reg = <0 0x100>;
+		regulators {
+			compatible = "maxim,max77650-regulator";
+
+			max77650_ldo: regulator@0 {
+				regulator-compatible = "ldo";
+				regulator-name = "max77650-ldo";
+				regulator-min-microvolt = <1350000>;
+				regulator-max-microvolt = <2937500>;
+			};
+
+			max77650_sbb0: regulator@1 {
+				regulator-compatible = "sbb0";
+				regulator-name = "max77650-sbb0";
+				regulator-min-microvolt = <800000>;
+				regulator-max-microvolt = <2375000>;
+			};
+		};
+
+		charger {
+			compatible = "maxim,max77650-charger";
+			input-voltage-min-microvolt = <4200000>;
+			input-current-limit-microamp = <285000>;
+		};
+
+		onkey {
+			compatible = "maxim,max77650-onkey";
+			linux,code = <KEY_END>;
+		};
+
+		leds {
+			compatible = "maxim,max77650-led";
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			led@0 {
+				reg = <0>;
+				label = "blue:usr0";
+			};
+
+			led@1 {
+				reg = <1>;
+				label = "red:usr1";
+				linux,default-trigger = "heartbeat";
+			};
+
+			led@2 {
+				reg = <2>;
+				label = "green:usr2";
+			};
 		};
 	};
 };
