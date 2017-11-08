@@ -60,6 +60,46 @@
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
 	};
+
+	i2cmux_cape: i2cmux@1 {
+		compatible = "i2c-mux-gpio";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		mux-gpios = <&pca9534 0 GPIO_ACTIVE_LOW>;
+		i2c-parent = <&i2c1>;
+		idle-state = <1>;
+		status = "okay";
+
+		i2c@1 {
+			reg = <1>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			at24c32: at24c32@54 {
+				compatible = "atmel,24c32";
+				reg = <0x54>;
+				pagesize = <32>;
+				wp-gpios = <&pca9534 1 0>;
+			};
+
+			at24cs32: at24cs32@5c {
+				compatible = "atmel,24cs32";
+				reg = <0x5c>;
+			};
+		};
+
+		i2c@2 {
+			reg = <2>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			pca9535: pca9535@20 {
+				compatible = "nxp,pca9535";
+				reg = <0x20>;
+				#gpio-cells = <2>;
+			};
+		};
+	};
 };
 
 &am33xx_pinmux {
@@ -79,6 +119,13 @@
 		pinctrl-single,pins = <
 			AM33XX_PADCONF(AM335X_PIN_I2C0_SDA, PIN_INPUT_PULLUP, MUX_MODE0)	/* i2c0_sda.i2c0_sda */
 			AM33XX_PADCONF(AM335X_PIN_I2C0_SCL, PIN_INPUT_PULLUP, MUX_MODE0)	/* i2c0_scl.i2c0_scl */
+		>;
+	};
+
+	i2c1_pins: pinmux_i2c1_pins {
+		pinctrl-single,pins = <
+			AM33XX_IOPAD(0x958, PIN_INPUT_PULLUP | MUX_MODE2)
+			AM33XX_IOPAD(0x95c, PIN_INPUT_PULLUP | MUX_MODE2)
 		>;
 	};
 
@@ -243,6 +290,20 @@
 		baseboard_data: baseboard_data@0 {
 			reg = <0 0x100>;
 		};
+	};
+};
+
+&i2c1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c1_pins>;
+
+	status = "okay";
+	clock-frequency = <400000>;
+
+	pca9534: pca9534@21 {
+		compatible = "nxp,pca9534";
+		reg = <0x21>;
+		#gpio-cells = <2>;
 	};
 };
 
