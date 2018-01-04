@@ -200,6 +200,10 @@
 	};
 };
 
+&ref_clk {
+	clock-frequency = <24000000>;
+};
+
 /include/ "tps6507x.dtsi"
 
 &tps {
