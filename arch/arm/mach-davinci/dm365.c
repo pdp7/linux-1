@@ -12,32 +12,35 @@
  * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
-#include <linux/init.h>
-#include <linux/clk.h>
-#include <linux/serial_8250.h>
-#include <linux/platform_device.h>
+#include <linux/clk-provider.h>
 #include <linux/dma-mapping.h>
 #include <linux/dmaengine.h>
-#include <linux/spi/spi.h>
+#include <linux/init.h>
 #include <linux/platform_data/edma.h>
 #include <linux/platform_data/gpio-davinci.h>
 #include <linux/platform_data/keyscan-davinci.h>
 #include <linux/platform_data/spi-davinci.h>
+#include <linux/platform_device.h>
+#include <linux/serial_8250.h>
+#include <linux/spi/spi.h>
 
 #include <asm/mach/map.h>
 
-#include <mach/cputype.h>
-#include "psc.h"
-#include <mach/mux.h>
-#include <mach/irqs.h>
-#include <mach/time.h>
-#include <mach/serial.h>
 #include <mach/common.h>
+#include <mach/cputype.h>
+#include <mach/irqs.h>
+#include <mach/mux.h>
+#include <mach/serial.h>
+#include <mach/time.h>
 
-#include "davinci.h"
-#include "clock.h"
-#include "mux.h"
 #include "asp.h"
+#include "davinci.h"
+#include "mux.h"
+
+#ifndef CONFIG_COMMON_CLK
+#include "clock.h"
+#include "psc.h"
+#endif
 
 #define DM365_REF_FREQ		24000000	/* 24 MHz on the DM365 EVM */
 #define DM365_RTC_BASE			0x01c69000
@@ -54,6 +57,7 @@
 #define DM365_EMAC_CNTRL_RAM_OFFSET	0x1000
 #define DM365_EMAC_CNTRL_RAM_SIZE	0x2000
 
+#ifndef CONFIG_COMMON_CLK
 static struct pll_data pll1_data = {
 	.num		= 1,
 	.phys_base	= DAVINCI_PLL1_BASE,
@@ -485,7 +489,7 @@ static struct clk_lookup dm365_clks[] = {
 	CLK(NULL, "mjcp", &mjcp_clk),
 	CLK(NULL, NULL, NULL),
 };
-
+#endif
 /*----------------------------------------------------------------------*/
 
 #define INTMUX		0x18
@@ -1171,8 +1175,68 @@ void __init dm365_init(void)
 
 void __init dm365_init_time(void)
 {
+#ifdef CONFIG_COMMON_CLK
+	struct clk *clk;
+
+	clk = clk_register_fixed_rate(NULL, "ref_clk", NULL, 0, DM365_REF_FREQ);
+
+	davinci_timer_init(clk);
+#else
 	davinci_clk_init(dm365_clks);
 	davinci_timer_init(&timer0_clk);
+#endif
+}
+
+static struct resource dm365_pll1_resources[] = {
+	{
+		.start	= DAVINCI_PLL1_BASE,
+		.end	= DAVINCI_PLL1_BASE + SZ_1K - 1,
+		.flags	= IORESOURCE_MEM,
+	},
+};
+
+static struct platform_device dm365_pll1_device = {
+	.name		= "dm365-pll1",
+	.id		= -1,
+	.resource	= dm365_pll1_resources,
+	.num_resources	= ARRAY_SIZE(dm365_pll1_resources),
+};
+
+static struct resource dm365_pll2_resources[] = {
+	{
+		.start	= DAVINCI_PLL2_BASE,
+		.end	= DAVINCI_PLL2_BASE + SZ_1K - 1,
+		.flags	= IORESOURCE_MEM,
+	},
+};
+
+static struct platform_device dm365_pll2_device = {
+	.name		= "dm365-pll2",
+	.id		= -1,
+	.resource	= dm365_pll2_resources,
+	.num_resources	= ARRAY_SIZE(dm365_pll2_resources),
+};
+
+static struct resource dm365_psc_resources[] = {
+	{
+		.start	= DAVINCI_PWR_SLEEP_CNTRL_BASE,
+		.end	= DAVINCI_PWR_SLEEP_CNTRL_BASE + SZ_4K - 1,
+		.flags	= IORESOURCE_MEM,
+	},
+};
+
+static struct platform_device dm365_psc_device = {
+	.name		= "dm365-psc",
+	.id		= -1,
+	.resource	= dm365_psc_resources,
+	.num_resources	= ARRAY_SIZE(dm365_psc_resources),
+};
+
+void __init dm365_register_clocks(void)
+{
+	platform_device_register(&dm365_pll1_device);
+	platform_device_register(&dm365_pll2_device);
+	platform_device_register(&dm365_psc_device);
 }
 
 static struct resource dm365_vpss_resources[] = {
