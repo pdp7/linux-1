@@ -252,7 +252,7 @@ int __init da830_register_edma(struct edma_rsv_info *rsv)
 	da8xx_edma0_pdata.slavecnt = ARRAY_SIZE(da830_edma_map);
 
 	edma_pdev = platform_device_register_full(&da8xx_edma0_device);
-	return IS_ERR(edma_pdev) ? PTR_ERR(edma_pdev) : 0;
+	return PTR_ERR_OR_ZERO(edma_pdev);
 }
 
 static const struct dma_slave_map da850_edma0_map[] = {
@@ -297,7 +297,7 @@ int __init da850_register_edma(struct edma_rsv_info *rsv[2])
 	da850_edma1_pdata.slavecnt = ARRAY_SIZE(da850_edma1_map);
 
 	edma_pdev = platform_device_register_full(&da850_edma1_device);
-	return IS_ERR(edma_pdev) ? PTR_ERR(edma_pdev) : 0;
+	return PTR_ERR_OR_ZERO(edma_pdev);
 }
 
 static struct resource da8xx_i2c_resources0[] = {
@@ -370,19 +370,6 @@ static struct platform_device da8xx_wdt_device = {
 	.num_resources	= ARRAY_SIZE(da8xx_watchdog_resources),
 	.resource	= da8xx_watchdog_resources,
 };
-
-void da8xx_restart(enum reboot_mode mode, const char *cmd)
-{
-	struct device *dev;
-
-	dev = bus_find_device_by_name(&platform_bus_type, NULL, "davinci-wdt");
-	if (!dev) {
-		pr_err("%s: failed to find watchdog device\n", __func__);
-		return;
-	}
-
-	davinci_watchdog_reset(to_platform_device(dev));
-}
 
 int __init da8xx_register_watchdog(void)
 {

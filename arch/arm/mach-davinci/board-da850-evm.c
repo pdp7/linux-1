@@ -798,11 +798,11 @@ static int da850_lcd_hw_init(void)
 {
 	int status;
 
-	status = gpio_request(DA850_LCD_BL_PIN, "lcd bl\n");
+	status = gpio_request(DA850_LCD_BL_PIN, "lcd bl");
 	if (status < 0)
 		return status;
 
-	status = gpio_request(DA850_LCD_PWR_PIN, "lcd pwr\n");
+	status = gpio_request(DA850_LCD_PWR_PIN, "lcd pwr");
 	if (status < 0) {
 		gpio_free(DA850_LCD_BL_PIN);
 		return status;
@@ -1485,6 +1485,5 @@ MACHINE_START(DAVINCI_DA850_EVM, "DaVinci DA850/OMAP-L138/AM18x EVM")
 	.init_machine	= da850_evm_init,
 	.init_late	= davinci_init_late,
 	.dma_zone_size	= SZ_128M,
-	.restart	= da8xx_restart,
 	.reserve	= da8xx_rproc_reserve_cma,
 MACHINE_END
