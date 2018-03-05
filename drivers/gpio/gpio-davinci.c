@@ -495,9 +495,11 @@ static int davinci_gpio_irq_setup(struct platform_device *pdev)
 	}
 
 	clk = devm_clk_get(dev, "gpio");
-	if (IS_ERR(clk)) {
-		dev_err(dev, "Error %ld getting gpio clock\n", PTR_ERR(clk));
-		return PTR_ERR(clk);
+	ret = PTR_ERR_OR_ZERO(clk);
+	if (ret) {
+		if (ret != -EPROBE_DEFER)
+			dev_err(dev, "Error getting gpio clock (%d)\n", ret);
+		return ret;
 	}
 	ret = clk_prepare_enable(clk);
 	if (ret)
