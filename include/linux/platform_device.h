@@ -314,6 +314,15 @@ static inline int is_early_platform_device(struct platform_device *pdev)
 extern void early_platform_driver_register_all(char *class_str);
 extern int early_platform_driver_probe(char *class_str,
 				       int nr_probe, int user_only);
+
+static inline int early_platform_driver_register_probe_all(char *class_str,
+							   int nr_probe,
+							   int user_only)
+{
+	early_platform_driver_register_all(class_str);
+	return early_platform_driver_probe(class_str, nr_probe, user_only);
+}
+
 extern void early_platform_cleanup(void);
 
 #define early_platform_init(class_string, platdrv)		\
