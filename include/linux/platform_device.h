@@ -301,6 +301,11 @@ extern int early_platform_driver_register(struct early_platform_driver *epdrv,
 					  char *buf);
 extern void early_platform_add_devices(struct platform_device **devs, int num);
 
+static inline void early_platform_add_device(struct platform_device *pdev)
+{
+	early_platform_add_devices(&pdev, 1);
+}
+
 static inline int is_early_platform_device(struct platform_device *pdev)
 {
 	return !pdev->dev.driver;
