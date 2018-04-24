@@ -979,6 +979,10 @@ struct device {
 	spinlock_t		devres_lock;
 	struct list_head	devres_head;
 
+#ifdef CONFIG_EARLY_PLATFORM_DEVICES
+	struct list_head	early_dev_head;
+#endif
+
 	struct klist_node	knode_class;
 	struct class		*class;
 	const struct attribute_group **groups;	/* optional groups */

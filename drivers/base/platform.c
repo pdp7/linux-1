@@ -1264,12 +1264,10 @@ void __init early_platform_add_devices(struct platform_device **devs, int num)
 	for (i = 0; i < num; i++) {
 		dev = &devs[i]->dev;
 
-		if (!dev->devres_head.next) {
-			pm_runtime_early_init(dev);
-			INIT_LIST_HEAD(&dev->devres_head);
-			list_add_tail(&dev->devres_head,
-				      &early_platform_device_list);
-		}
+		pm_runtime_early_init(dev);
+		INIT_LIST_HEAD(&dev->early_dev_head);
+		list_add_tail(&dev->early_dev_head,
+			      &early_platform_device_list);
 	}
 }
 
@@ -1310,7 +1308,7 @@ early_platform_match(struct early_platform_driver *epdrv, int id)
 {
 	struct platform_device *pd;
 
-	list_for_each_entry(pd, &early_platform_device_list, dev.devres_head)
+	list_for_each_entry(pd, &early_platform_device_list, dev.early_dev_head)
 		if (platform_match(&pd->dev, &epdrv->pdrv->driver))
 			if (pd->id == id)
 				return pd;
@@ -1328,7 +1326,7 @@ static int __init early_platform_left(struct early_platform_driver *epdrv,
 {
 	struct platform_device *pd;
 
-	list_for_each_entry(pd, &early_platform_device_list, dev.devres_head)
+	list_for_each_entry(pd, &early_platform_device_list, dev.early_dev_head)
 		if (platform_match(&pd->dev, &epdrv->pdrv->driver))
 			if (pd->id >= id)
 				return 1;
@@ -1465,11 +1463,12 @@ void __init early_platform_cleanup(void)
 {
 	struct platform_device *pd, *pd2;
 
-	/* clean up the devres list used to chain devices */
+	/* clean up the list used to chain devices */
 	list_for_each_entry_safe(pd, pd2, &early_platform_device_list,
-				 dev.devres_head) {
-		list_del(&pd->dev.devres_head);
-		memset(&pd->dev.devres_head, 0, sizeof(pd->dev.devres_head));
+				 dev.early_dev_head) {
+		list_del(&pd->dev.early_dev_head);
+		memset(&pd->dev.early_dev_head, 0,
+		       sizeof(pd->dev.early_dev_head));
 	}
 }
 
