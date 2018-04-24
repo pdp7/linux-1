@@ -297,6 +297,8 @@ struct early_platform_driver {
 #define EARLY_PLATFORM_ID_UNSET -2
 #define EARLY_PLATFORM_ID_ERROR -3
 
+#define EARLY_PLATFORM_DEFAULT_CLASS	"earlydev"
+
 #ifdef CONFIG_EARLY_PLATFORM_DEVICES
 
 extern int early_platform_driver_register(struct early_platform_driver *epdrv,
@@ -352,6 +354,9 @@ static inline char *early_platform_driver_setup_func(void)		\
 }
 #endif /* MODULE */
 
+#define early_platform_driver(__platdrv)				\
+	early_platform_init(EARLY_PLATFORM_DEFAULT_CLASS, &(__platdrv))
+
 #else /* CONFIG_EARLY_PLATFORM_DEVICES */
 static inline int
 early_platform_driver_register(struct early_platform_driver *epdrv, char *buf)
@@ -380,6 +385,7 @@ static inline int early_platform_driver_register_probe_all(char *class_str,
 static inline void early_platform_cleanup(void) {}
 #define early_platform_init(class_string, platdrv)
 #define early_platform_init_buffer(class_string, platdrv, buf, bufsiz)
+#define early_platform_driver(__platdrv)
 #endif /* CONFIG_EARLY_PLATFORM_DEVICES */
 
 #ifdef CONFIG_SUSPEND
