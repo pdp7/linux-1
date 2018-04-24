@@ -30,6 +30,7 @@ extern struct platform_device *of_dev_get(struct platform_device *dev);
 extern void of_dev_put(struct platform_device *dev);
 
 extern int of_device_add(struct platform_device *pdev);
+extern void of_device_add_early(struct platform_device *pdev);
 extern int of_device_register(struct platform_device *ofdev);
 extern void of_device_unregister(struct platform_device *ofdev);
 

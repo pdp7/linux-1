@@ -160,6 +160,7 @@ EXPORT_SYMBOL(of_device_alloc);
  * @bus_id: name to assign device
  * @platform_data: pointer to populate platform_data pointer with
  * @parent: Linux device model parent device.
+ * @early: create as an early platform device
  *
  * Returns pointer to created platform device, or NULL if a device was not
  * registered.  Unavailable devices will not get registered.
@@ -168,9 +169,11 @@ static struct platform_device *of_platform_device_create_pdata(
 					struct device_node *np,
 					const char *bus_id,
 					void *platform_data,
-					struct device *parent)
+					struct device *parent,
+					bool early)
 {
 	struct platform_device *pdev;
+	int rc;
 
 	if (!of_device_is_available(np) ||
 	    of_node_test_and_set_flag(np, OF_POPULATED))
@@ -184,9 +187,14 @@ static struct platform_device *of_platform_device_create_pdata(
 	pdev->dev.platform_data = platform_data;
 	of_msi_configure(&pdev->dev, pdev->dev.of_node);
 
-	if (of_device_add(pdev) != 0) {
-		platform_device_put(pdev);
-		goto err_clear_flag;
+	if (unlikely(early)) {
+		of_device_add_early(pdev);
+	} else {
+		rc = of_device_add(pdev);
+		if (rc) {
+			platform_device_put(pdev);
+			goto err_clear_flag;
+		}
 	}
 
 	return pdev;
@@ -209,7 +217,7 @@ struct platform_device *of_platform_device_create(struct device_node *np,
 					    const char *bus_id,
 					    struct device *parent)
 {
-	return of_platform_device_create_pdata(np, bus_id, NULL, parent);
+	return of_platform_device_create_pdata(np, bus_id, NULL, parent, false);
 }
 EXPORT_SYMBOL(of_platform_device_create);
 
@@ -333,6 +341,7 @@ static const struct of_dev_auxdata *of_dev_lookup(const struct of_dev_auxdata *l
  * @lookup: auxdata table for matching id and platform_data with device nodes
  * @parent: parent for new device, or NULL for top level.
  * @strict: require compatible property
+ * @early: register sub-devices as early platform devices
  *
  * Creates a platform_device for the provided device_node, and optionally
  * recursively create devices for all the child nodes.
@@ -340,7 +349,8 @@ static const struct of_dev_auxdata *of_dev_lookup(const struct of_dev_auxdata *l
 static int of_platform_bus_create(struct device_node *bus,
 				  const struct of_device_id *matches,
 				  const struct of_dev_auxdata *lookup,
-				  struct device *parent, bool strict)
+				  struct device *parent,
+				  bool strict, bool early)
 {
 	const struct of_dev_auxdata *auxdata;
 	struct device_node *child;
@@ -377,13 +387,15 @@ static int of_platform_bus_create(struct device_node *bus,
 		return 0;
 	}
 
-	pdev = of_platform_device_create_pdata(bus, bus_id, platform_data, parent);
+	pdev = of_platform_device_create_pdata(bus, bus_id,
+					       platform_data, parent, early);
 	if (!pdev || !of_match_node(matches, bus))
 		return 0;
 
 	for_each_child_of_node(bus, child) {
 		pr_debug("   create child: %pOF\n", child);
-		rc = of_platform_bus_create(child, matches, lookup, &pdev->dev, strict);
+		rc = of_platform_bus_create(child, matches, lookup,
+					    &pdev->dev, strict, early);
 		if (rc) {
 			of_node_put(child);
 			break;
@@ -418,11 +430,13 @@ int of_platform_bus_probe(struct device_node *root,
 
 	/* Do a self check of bus type, if there's a match, create children */
 	if (of_match_node(matches, root)) {
-		rc = of_platform_bus_create(root, matches, NULL, parent, false);
+		rc = of_platform_bus_create(root, matches, NULL,
+					    parent, false, false);
 	} else for_each_child_of_node(root, child) {
 		if (!of_match_node(matches, child))
 			continue;
-		rc = of_platform_bus_create(child, matches, NULL, parent, false);
+		rc = of_platform_bus_create(child, matches, NULL,
+					    parent, false, false);
 		if (rc) {
 			of_node_put(child);
 			break;
@@ -435,11 +449,12 @@ int of_platform_bus_probe(struct device_node *root,
 EXPORT_SYMBOL(of_platform_bus_probe);
 
 /**
- * of_platform_populate() - Populate platform_devices from device tree data
+ * __of_platform_populate() - Populate platform_devices from device tree data
  * @root: parent of the first level to probe or NULL for the root of the tree
  * @matches: match table, NULL to use the default
  * @lookup: auxdata table for matching id and platform_data with device nodes
  * @parent: parent to hook devices from, NULL for toplevel
+ * @early: early platform mode
  *
  * Similar to of_platform_bus_probe(), this function walks the device tree
  * and creates devices from nodes.  It differs in that it follows the modern
@@ -453,10 +468,10 @@ EXPORT_SYMBOL(of_platform_bus_probe);
  *
  * Returns 0 on success, < 0 on failure.
  */
-int of_platform_populate(struct device_node *root,
-			const struct of_device_id *matches,
-			const struct of_dev_auxdata *lookup,
-			struct device *parent)
+int __of_platform_populate(struct device_node *root,
+			   const struct of_device_id *matches,
+			   const struct of_dev_auxdata *lookup,
+			   struct device *parent, bool early)
 {
 	struct device_node *child;
 	int rc = 0;
@@ -469,7 +484,8 @@ int of_platform_populate(struct device_node *root,
 	pr_debug(" starting at: %pOF\n", root);
 
 	for_each_child_of_node(root, child) {
-		rc = of_platform_bus_create(child, matches, lookup, parent, true);
+		rc = of_platform_bus_create(child, matches, lookup,
+					    parent, false, early);
 		if (rc) {
 			of_node_put(child);
 			break;
@@ -480,7 +496,7 @@ int of_platform_populate(struct device_node *root,
 	of_node_put(root);
 	return rc;
 }
-EXPORT_SYMBOL_GPL(of_platform_populate);
+EXPORT_SYMBOL_GPL(__of_platform_populate);
 
 int of_platform_default_populate(struct device_node *root,
 				 const struct of_dev_auxdata *lookup,

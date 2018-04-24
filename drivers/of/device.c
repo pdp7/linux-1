@@ -53,7 +53,7 @@ void of_dev_put(struct platform_device *dev)
 }
 EXPORT_SYMBOL(of_dev_put);
 
-int of_device_add(struct platform_device *ofdev)
+static void of_device_add_prepare(struct platform_device *ofdev)
 {
 	BUG_ON(ofdev->dev.of_node == NULL);
 
@@ -68,8 +68,18 @@ int of_device_add(struct platform_device *ofdev)
 	 * device is on the same node as the parent.
 	 */
 	set_dev_node(&ofdev->dev, of_node_to_nid(ofdev->dev.of_node));
+}
 
+int of_device_add(struct platform_device *ofdev)
+{
+	of_device_add_prepare(ofdev);
 	return device_add(&ofdev->dev);
+}
+
+void of_device_add_early(struct platform_device *ofdev)
+{
+	of_device_add_prepare(ofdev);
+	early_platform_add_device(ofdev);
 }
 
 /**

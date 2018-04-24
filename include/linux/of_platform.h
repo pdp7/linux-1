@@ -71,10 +71,39 @@ extern int of_platform_bus_probe(struct device_node *root,
 				 const struct of_device_id *matches,
 				 struct device *parent);
 #ifdef CONFIG_OF_ADDRESS
-extern int of_platform_populate(struct device_node *root,
-				const struct of_device_id *matches,
-				const struct of_dev_auxdata *lookup,
-				struct device *parent);
+extern int __of_platform_populate(struct device_node *root,
+				  const struct of_device_id *matches,
+				  const struct of_dev_auxdata *lookup,
+				  struct device *parent, bool early);
+
+static inline int of_platform_populate(struct device_node *root,
+				       const struct of_device_id *matches,
+				       const struct of_dev_auxdata *lookup,
+				       struct device *parent)
+{
+	return __of_platform_populate(root, matches, lookup, parent, false);
+}
+
+#ifdef CONFIG_EARLY_PLATFORM_DEVICES
+static inline int
+of_early_platform_populate(struct device_node *root,
+			   const struct of_device_id *matches,
+			   const struct of_dev_auxdata *lookup,
+			   struct device *parent)
+{
+	return __of_platform_populate(root, matches, lookup, parent, true);
+}
+#else /* CONFIG_EARLY_PLATFORM_DEVICES */
+static inline int
+of_early_platform_populate(struct device_node *root,
+			   const struct of_device_id *matches,
+			   const struct of_dev_auxdata *lookup,
+			   struct device *parent)
+{
+	return -ENOSYS;
+}
+#endif /* CONFIG_EARLY_PLATFORM_DEVICES */
+
 extern int of_platform_default_populate(struct device_node *root,
 					const struct of_dev_auxdata *lookup,
 					struct device *parent);
