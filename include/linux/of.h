@@ -1170,6 +1170,9 @@ static inline int of_property_read_s32(const struct device_node *np,
 #define for_each_compatible_node(dn, type, compatible) \
 	for (dn = of_find_compatible_node(NULL, type, compatible); dn; \
 	     dn = of_find_compatible_node(dn, type, compatible))
+#define for_each_compatible_child_node(dn, type, compatible, root) \
+	for (dn = of_find_compatible_node(root, type, compatible); dn; \
+	     dn = of_find_compatible_node(dn, type, compatible))
 #define for_each_matching_node(dn, matches) \
 	for (dn = of_find_matching_node(NULL, matches); dn; \
 	     dn = of_find_matching_node(dn, matches))
