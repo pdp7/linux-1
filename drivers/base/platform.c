@@ -1186,6 +1186,8 @@ u64 dma_get_required_mask(struct device *dev)
 EXPORT_SYMBOL_GPL(dma_get_required_mask);
 #endif
 
+#ifdef CONFIG_EARLY_PLATFORM_DEVICES
+
 static __initdata LIST_HEAD(early_platform_driver_list);
 static __initdata LIST_HEAD(early_platform_device_list);
 
@@ -1471,3 +1473,4 @@ void __init early_platform_cleanup(void)
 	}
 }
 
+#endif /* CONFIG_EARLY_PLATFORM_DEVICES */

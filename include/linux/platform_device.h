@@ -297,6 +297,8 @@ struct early_platform_driver {
 #define EARLY_PLATFORM_ID_UNSET -2
 #define EARLY_PLATFORM_ID_ERROR -3
 
+#ifdef CONFIG_EARLY_PLATFORM_DEVICES
+
 extern int early_platform_driver_register(struct early_platform_driver *epdrv,
 					  char *buf);
 extern void early_platform_add_devices(struct platform_device **devs, int num);
@@ -349,6 +351,36 @@ static inline char *early_platform_driver_setup_func(void)		\
 	return bufsiz ? buf : NULL;					\
 }
 #endif /* MODULE */
+
+#else /* CONFIG_EARLY_PLATFORM_DEVICES */
+static inline int
+early_platform_driver_register(struct early_platform_driver *epdrv, char *buf)
+{
+	return -ENOSYS;
+}
+static inline void
+early_platform_add_devices(struct platform_device **devs, int num) {}
+static inline void early_platform_add_device(struct platform_device *pdev) {}
+static inline int is_early_platform_device(struct platform_device *pdev)
+{
+	return -ENOSYS;
+}
+static inline void early_platform_driver_register_all(char *class_str) {}
+static inline int early_platform_driver_probe(char *class_str,
+					      int nr_probe, int user_only)
+{
+	return -ENOSYS;
+}
+static inline int early_platform_driver_register_probe_all(char *class_str,
+							   int nr_probe,
+							   int user_only)
+{
+	return -ENOSYS;
+}
+static inline void early_platform_cleanup(void) {}
+#define early_platform_init(class_string, platdrv)
+#define early_platform_init_buffer(class_string, platdrv, buf, bufsiz)
+#endif /* CONFIG_EARLY_PLATFORM_DEVICES */
 
 #ifdef CONFIG_SUSPEND
 extern int platform_pm_suspend(struct device *dev);
