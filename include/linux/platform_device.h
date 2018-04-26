@@ -36,6 +36,10 @@ struct platform_device {
 
 	/* arch specific additions */
 	struct pdev_archdata	archdata;
+
+#ifdef CONFIG_EARLYDEV
+	bool early_probed;
+#endif
 };
 
 #define platform_get_device_id(pdev)	((pdev)->id_entry)

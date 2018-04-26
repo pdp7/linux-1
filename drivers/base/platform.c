@@ -26,6 +26,7 @@
 #include <linux/clk/clk-conf.h>
 #include <linux/limits.h>
 #include <linux/property.h>
+#include <linux/earlydev.h>
 
 #include "base.h"
 #include "power/power.h"
@@ -574,7 +575,17 @@ static int platform_drv_probe(struct device *_dev)
 	ret = dev_pm_domain_attach(_dev, true);
 	if (ret != -EPROBE_DEFER) {
 		if (drv->probe) {
+#ifdef CONFIG_EARLYDEV
+			if (dev->early_probed && !earlydev_probe_late(dev)) {
+				/* Skip this probe if probed early. */
+				dev->early_probed = false;
+				ret = 0;
+			} else {
+				ret = drv->probe(dev);
+			}
+#else /* CONFIG_EARLYDEV */
 			ret = drv->probe(dev);
+#endif /* CONFIG_EARLYDEV */
 			if (ret)
 				dev_pm_domain_detach(_dev, true);
 		} else {
