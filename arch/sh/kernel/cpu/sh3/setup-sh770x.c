@@ -21,6 +21,7 @@
 #include <linux/sh_timer.h>
 #include <linux/sh_intc.h>
 #include <cpu/serial.h>
+#include <asm/platform_early.h>
 
 enum {
 	UNUSED = 0,

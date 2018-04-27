@@ -21,6 +21,7 @@
 #include <asm/clock.h>
 #include <asm/mmzone.h>
 #include <asm/siu.h>
+#include <asm/platform_early.h>
 
 #include <cpu/dma-register.h>
 #include <cpu/sh7722.h>

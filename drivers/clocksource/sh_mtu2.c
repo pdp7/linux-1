@@ -31,6 +31,10 @@
 #include <linux/slab.h>
 #include <linux/spinlock.h>
 
+#ifdef CONFIG_SUPERH
+#include <asm/platform_early.h>
+#endif
+
 struct sh_mtu2_device;
 
 struct sh_mtu2_channel {
@@ -450,10 +454,12 @@ static int sh_mtu2_probe(struct platform_device *pdev)
 	struct sh_mtu2_device *mtu = platform_get_drvdata(pdev);
 	int ret;
 
+#ifdef CONFIG_SUPERH
 	if (!is_early_platform_device(pdev)) {
 		pm_runtime_set_active(&pdev->dev);
 		pm_runtime_enable(&pdev->dev);
 	}
+#endif
 
 	if (mtu) {
 		dev_info(&pdev->dev, "kept as earlytimer\n");
@@ -470,8 +476,10 @@ static int sh_mtu2_probe(struct platform_device *pdev)
 		pm_runtime_idle(&pdev->dev);
 		return ret;
 	}
+#ifdef CONFIG_SUPERH
 	if (is_early_platform_device(pdev))
 		return 0;
+#endif
 
  out:
 	if (mtu->has_clockevent)
@@ -519,7 +527,10 @@ static void __exit sh_mtu2_exit(void)
 	platform_driver_unregister(&sh_mtu2_device_driver);
 }
 
+#ifdef CONFIG_SUPERH
 early_platform_init("earlytimer", &sh_mtu2_device_driver);
+#endif
+
 subsys_initcall(sh_mtu2_init);
 module_exit(sh_mtu2_exit);
 

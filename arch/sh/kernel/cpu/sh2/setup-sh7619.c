@@ -15,6 +15,8 @@
 #include <linux/sh_eth.h>
 #include <linux/sh_timer.h>
 #include <linux/io.h>
+#include <asm/platform_early.h>
+#include <asm/platform_early.h>
 
 enum {
 	UNUSED = 0,

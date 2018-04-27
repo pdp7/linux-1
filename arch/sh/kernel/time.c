@@ -21,6 +21,7 @@
 #include <linux/rtc.h>
 #include <asm/clock.h>
 #include <asm/rtc.h>
+#include <asm/platform_early.h>
 
 /* Dummy RTC ops */
 static void null_rtc_get_time(struct timespec *tv)
