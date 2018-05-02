@@ -214,6 +214,16 @@
 #define CPU_METHOD_OF_TABLES()	OF_TABLE(CONFIG_SMP, cpu_method)
 #define CPUIDLE_METHOD_OF_TABLES() OF_TABLE(CONFIG_CPU_IDLE, cpuidle_method)
 
+#ifdef CONFIG_EARLY_PLATFORM
+#define EARLY_PLATFORM_DRIVERS_TABLE()					\
+	. = ALIGN(8);							\
+	VMLINUX_SYMBOL(__early_platform_drivers_table) = .;		\
+	KEEP(*(__early_platform_drivers_table))				\
+	VMLINUX_SYMBOL(__early_platform_drivers_table_end) = .;
+#else
+#define EARLY_PLATFORM_DRIVERS_TABLE()
+#endif
+
 #ifdef CONFIG_ACPI
 #define ACPI_PROBE_TABLE(name)						\
 	. = ALIGN(8);							\
@@ -593,6 +603,7 @@
 	RESERVEDMEM_OF_TABLES()						\
 	TIMER_OF_TABLES()						\
 	IOMMU_OF_TABLES()						\
+	EARLY_PLATFORM_DRIVERS_TABLE()					\
 	CPU_METHOD_OF_TABLES()						\
 	CPUIDLE_METHOD_OF_TABLES()					\
 	KERNEL_DTB()							\
