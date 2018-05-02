@@ -205,6 +205,9 @@ config DEBUG_TEST_DRIVER_REMOVE
 	  unusable. You should say N here unless you are explicitly looking to
 	  test this functionality.
 
+config EARLY_PLATFORM
+	def_bool n
+
 source "drivers/base/test/Kconfig"
 
 config SYS_HYPERVISOR
