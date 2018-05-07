@@ -19,6 +19,7 @@
 #include <linux/cpufreq.h>
 #include <linux/regulator/consumer.h>
 #include <linux/platform_data/gpio-davinci.h>
+#include <linux/early_platform.h>
 
 #include <asm/mach/map.h>
 
@@ -1393,8 +1394,27 @@ void __init da850_init(void)
 	__raw_writel(v, DA8XX_SYSCFG0_VIRT(DA8XX_CFGCHIP3_REG));
 }
 
+static struct resource early_dummy_resource[] = {
+	{
+		.start	= 0x00C0FFEE,
+		.end	= 0xDEADBEEF,
+		.flags	= IORESOURCE_MEM,
+	}
+};
+
+static struct early_platform_device early_dummy_device = {
+	.pdev = {
+		.name = "dummy-early",
+		.resource = early_dummy_resource,
+		.num_resources = ARRAY_SIZE(early_dummy_resource),
+	},
+};
+
 void __init da850_init_time(void)
 {
 	davinci_clk_init(da850_clks);
 	davinci_timer_init();
+
+	if (!of_have_populated_dt())
+		early_platform_device_register(&early_dummy_device);
 }

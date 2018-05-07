@@ -569,6 +569,10 @@
 			max-pixelclock = <37500>;
 			status = "disabled";
 		};
+		dummy_early {
+			compatible = "dummy-early";
+			reg = <0x219000 0x2000>;
+		};
 	};
 	aemif: aemif@68000000 {
 		compatible = "ti,da850-aemif";

@@ -26,6 +26,7 @@
 #include <linux/time.h>
 #include <linux/timex.h>
 #include <linux/timer.h>
+#include <linux/early_platform.h>
 
 #include <asm/mach/arch.h>
 #include <asm/mach/time.h>
@@ -122,4 +123,5 @@ void __init time_init(void)
 #endif
 		timer_probe();
 	}
+	early_platform_start();
 }
