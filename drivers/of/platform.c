@@ -21,6 +21,7 @@
 #include <linux/of_irq.h>
 #include <linux/of_platform.h>
 #include <linux/platform_device.h>
+#include <linux/early_platform.h>
 
 const struct of_device_id of_default_bus_match_table[] = {
 	{ .compatible = "simple-bus", },
@@ -196,9 +197,17 @@ static struct platform_device *of_platform_device_create_pdata(
 	    of_node_test_and_set_flag(np, OF_POPULATED))
 		return NULL;
 
-	dev = of_device_alloc(np, bus_id, parent);
-	if (!dev)
-		goto err_clear_flag;
+	if (of_node_check_flag(np, OF_POPULATED_EARLY)) {
+		dev = of_early_to_platform_device(np);
+		if (IS_ERR(dev))
+			goto err_clear_flag;
+
+		of_device_init(dev, np, bus_id, parent);
+	} else {
+		dev = of_device_alloc(np, bus_id, parent);
+		if (!dev)
+			goto err_clear_flag;
+	}
 
 	dev->dev.bus = &platform_bus_type;
 	dev->dev.platform_data = platform_data;
