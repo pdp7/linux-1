@@ -143,6 +143,7 @@ extern raw_spinlock_t devtree_lock;
 #define OF_DETACHED	2 /* node has been detached from the device tree */
 #define OF_POPULATED	3 /* device already created for the node */
 #define OF_POPULATED_BUS	4 /* of_platform_populate recursed to children of this node */
+#define OF_POPULATED_EARLY	5 /* device is already allocated */
 
 #define OF_BAD_ADDR	((u64)-1)
 
