@@ -132,6 +132,19 @@ int of_device_init_resources(struct platform_device *pdev,
 	return 0;
 }
 
+static void of_device_init(struct platform_device *pdev, struct device_node *np,
+			   const char *bus_id, struct device *parent)
+{
+	pdev->dev.of_node = of_node_get(np);
+	pdev->dev.fwnode = &np->fwnode;
+	pdev->dev.parent = parent ? : &platform_bus;
+
+	if (bus_id)
+		dev_set_name(&pdev->dev, "%s", bus_id);
+	else
+		of_device_make_bus_id(&pdev->dev);
+}
+
 /**
  * of_device_alloc - Allocate and initialize an of_device
  * @np: device node to assign to device
@@ -155,14 +168,7 @@ struct platform_device *of_device_alloc(struct device_node *np,
 		return NULL;
 	}
 
-	dev->dev.of_node = of_node_get(np);
-	dev->dev.fwnode = &np->fwnode;
-	dev->dev.parent = parent ? : &platform_bus;
-
-	if (bus_id)
-		dev_set_name(&dev->dev, "%s", bus_id);
-	else
-		of_device_make_bus_id(&dev->dev);
+	of_device_init(dev, np, bus_id, parent);
 
 	return dev;
 }
