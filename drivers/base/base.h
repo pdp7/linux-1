@@ -164,3 +164,4 @@ extern void device_links_unbind_consumers(struct device *dev);
 
 /* Platform device helpers. */
 extern int platform_match(struct device *dev, struct device_driver *drv);
+extern void platform_device_release(struct device *dev);
