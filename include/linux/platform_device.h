@@ -165,6 +165,8 @@ static inline struct platform_device *platform_device_register_data(
 			NULL, 0, data, size);
 }
 
+extern void platform_device_init(struct platform_device *pdev,
+				 const char *name, int id);
 extern struct platform_device *platform_device_alloc(const char *name, int id);
 extern int platform_device_add_resources(struct platform_device *pdev,
 					 const struct resource *res,

@@ -253,6 +253,25 @@ static void platform_device_release(struct device *dev)
 }
 
 /**
+ * platform_device_init - initialize a platform device
+ * @pdev: platform device to initialize
+ * @name: base name of the device we're adding, NOTE: it's not copied
+ * @id: instance id
+ *
+ * Initiate an already allocated platform device. This routine does not set
+ * the release device callback.
+ */
+void platform_device_init(struct platform_device *pdev,
+			  const char *name, int id)
+{
+	pdev->name = name;
+	pdev->id = id;
+	device_initialize(&pdev->dev);
+	arch_setup_pdev_archdata(pdev);
+}
+EXPORT_SYMBOL_GPL(platform_device_init);
+
+/**
  * platform_device_alloc - create a platform device
  * @name: base name of the device we're adding
  * @id: instance id
@@ -267,11 +286,8 @@ struct platform_device *platform_device_alloc(const char *name, int id)
 	pa = kzalloc(sizeof(*pa) + strlen(name) + 1, GFP_KERNEL);
 	if (pa) {
 		strcpy(pa->name, name);
-		pa->pdev.name = pa->name;
-		pa->pdev.id = id;
-		device_initialize(&pa->pdev.dev);
+		platform_device_init(&pa->pdev, pa->name, id);
 		pa->pdev.dev.release = platform_device_release;
-		arch_setup_pdev_archdata(&pa->pdev);
 	}
 
 	return pa ? &pa->pdev : NULL;
