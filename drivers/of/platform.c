@@ -99,6 +99,39 @@ static void of_device_make_bus_id(struct device *dev)
 	}
 }
 
+int of_device_init_resources(struct platform_device *pdev,
+			     struct device_node *np)
+{
+	int rc, i, num_reg = 0, num_irq;
+	struct resource *res, temp_res;
+
+	/* count the io and irq resources */
+	while (of_address_to_resource(np, num_reg, &temp_res) == 0)
+		num_reg++;
+	num_irq = of_irq_count(np);
+
+	/* Populate the resource table */
+	if (num_irq || num_reg) {
+		res = kzalloc(sizeof(*res) * (num_irq + num_reg), GFP_KERNEL);
+		if (!res)
+			return -ENOMEM;
+
+		pdev->num_resources = num_reg + num_irq;
+		pdev->resource = res;
+
+		for (i = 0; i < num_reg; i++, res++) {
+			rc = of_address_to_resource(np, i, res);
+			WARN_ON(rc);
+		}
+
+		if (of_irq_to_resource_table(np, res, num_irq) != num_irq)
+			pr_debug("not all legacy IRQ resources mapped for %s\n",
+				 np->name);
+	}
+
+	return 0;
+}
+
 /**
  * of_device_alloc - Allocate and initialize an of_device
  * @np: device node to assign to device
@@ -110,35 +143,16 @@ struct platform_device *of_device_alloc(struct device_node *np,
 				  struct device *parent)
 {
 	struct platform_device *dev;
-	int rc, i, num_reg = 0, num_irq;
-	struct resource *res, temp_res;
+	int rc;
 
 	dev = platform_device_alloc("", PLATFORM_DEVID_NONE);
 	if (!dev)
 		return NULL;
 
-	/* count the io and irq resources */
-	while (of_address_to_resource(np, num_reg, &temp_res) == 0)
-		num_reg++;
-	num_irq = of_irq_count(np);
-
-	/* Populate the resource table */
-	if (num_irq || num_reg) {
-		res = kzalloc(sizeof(*res) * (num_irq + num_reg), GFP_KERNEL);
-		if (!res) {
-			platform_device_put(dev);
-			return NULL;
-		}
-
-		dev->num_resources = num_reg + num_irq;
-		dev->resource = res;
-		for (i = 0; i < num_reg; i++, res++) {
-			rc = of_address_to_resource(np, i, res);
-			WARN_ON(rc);
-		}
-		if (of_irq_to_resource_table(np, res, num_irq) != num_irq)
-			pr_debug("not all legacy IRQ resources mapped for %s\n",
-				 np->name);
+	rc = of_device_init_resources(dev, np);
+	if (rc) {
+		platform_device_put(dev);
+		return NULL;
 	}
 
 	dev->dev.of_node = of_node_get(np);
