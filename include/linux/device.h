@@ -992,6 +992,7 @@ struct device {
 	bool			offline_disabled:1;
 	bool			offline:1;
 	bool			of_node_reused:1;
+	bool			early:1;
 };
 
 static inline struct device *kobj_to_dev(struct kobject *kobj)
