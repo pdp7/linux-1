@@ -19,6 +19,7 @@
 #include <linux/of_address.h>
 #include <linux/of_irq.h>
 
+#include <asm/exception.h>
 #include <mach/common.h>
 #include "cp_intc.h"
 
@@ -96,6 +97,16 @@ static struct irq_chip cp_intc_irq_chip = {
 };
 
 static struct irq_domain *cp_intc_domain;
+
+static asmlinkage void __exception_irq_entry
+cp_intc_handle_irq(struct pt_regs *regs)
+{
+	int irqnr = cp_intc_read(CP_INTC_PRIO_IDX);
+
+	irqnr &= 0xff;
+
+	handle_domain_irq(cp_intc_domain, irqnr, regs);
+}
 
 static int cp_intc_host_map(struct irq_domain *h, unsigned int virq,
 			  irq_hw_number_t hw)
@@ -195,6 +206,8 @@ int __init cp_intc_of_init(struct device_node *node, struct device_node *parent)
 		pr_err("cp_intc: failed to allocate irq host!\n");
 		return -EINVAL;
 	}
+
+	set_handle_irq(cp_intc_handle_irq);
 
 	/* Enable global interrupt */
 	cp_intc_write(1, CP_INTC_GLOBAL_ENABLE);

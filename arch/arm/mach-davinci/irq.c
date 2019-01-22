@@ -28,11 +28,13 @@
 #include <mach/cputype.h>
 #include <mach/common.h>
 #include <asm/mach/irq.h>
+#include <asm/exception.h>
 
 #define FIQ_REG0_OFFSET		0x0000
 #define FIQ_REG1_OFFSET		0x0004
 #define IRQ_REG0_OFFSET		0x0008
 #define IRQ_REG1_OFFSET		0x000C
+#define IRQ_IRQENTRY_OFFSET	0x0014
 #define IRQ_ENT_REG0_OFFSET	0x0018
 #define IRQ_ENT_REG1_OFFSET	0x001C
 #define IRQ_INCTL_REG_OFFSET	0x0020
@@ -43,6 +45,11 @@
 static inline void davinci_irq_writel(unsigned long value, int offset)
 {
 	__raw_writel(value, davinci_intc_base + offset);
+}
+
+static inline unsigned long davinci_irq_readl(int offset)
+{
+	return __raw_readl(davinci_intc_base + offset);
 }
 
 static __init void
@@ -67,6 +74,19 @@ davinci_alloc_gc(void __iomem *base, unsigned int irq_start, unsigned int num)
 	ct->regs.mask = IRQ_ENT_REG0_OFFSET;
 	irq_setup_generic_chip(gc, IRQ_MSK(num), IRQ_GC_INIT_MASK_CACHE,
 			       IRQ_NOREQUEST | IRQ_NOPROBE, 0);
+}
+
+static asmlinkage void __exception_irq_entry
+davinci_handle_irq(struct pt_regs *regs)
+{
+	int irqnr = davinci_irq_readl(IRQ_IRQENTRY_OFFSET);
+	struct pt_regs *old_regs = set_irq_regs(regs);
+
+	irqnr >>= 2;
+	irqnr -= 1;
+
+	generic_handle_irq(irqnr);
+	set_irq_regs(old_regs);
 }
 
 /* ARM Interrupt Controller Initialization */
@@ -114,4 +134,5 @@ void __init davinci_irq_init(void)
 		davinci_alloc_gc(davinci_intc_base + j, i, 32);
 
 	irq_set_handler(IRQ_TINT1_TINT34, handle_level_irq);
+	set_handle_irq(davinci_handle_irq);
 }
