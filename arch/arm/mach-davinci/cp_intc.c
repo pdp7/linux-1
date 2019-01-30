@@ -23,6 +23,8 @@
 #include <mach/common.h>
 #include "cp_intc.h"
 
+static void __iomem *davinci_intc_base;
+
 static inline unsigned int cp_intc_read(unsigned offset)
 {
 	return __raw_readl(davinci_intc_base + offset);
