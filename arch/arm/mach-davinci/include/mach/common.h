@@ -17,7 +17,7 @@
 #include <linux/types.h>
 #include <linux/reboot.h>
 
-void cp_intc_init(void);
+void davinci_cp_intc_init(void);
 void davinci_timer_init(struct clk *clk);
 
 struct davinci_timer_instance {
