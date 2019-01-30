@@ -1008,7 +1008,7 @@ static const struct davinci_aintc_config dm365_aintc_config = {
 
 void __init dm365_init_irqs(void)
 {
-	davinci_aintc_init();
+	davinci_aintc_init(&dm365_aintc_config);
 }
 
 static int __init dm365_init_devices(void)
