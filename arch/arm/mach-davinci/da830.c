@@ -730,7 +730,7 @@ static const struct davinci_cp_intc_config da830_cp_intc_config = {
 		.end		= DA8XX_CP_INTC_BASE + SZ_8K,
 		.flags		= IORESOURCE_MEM,
 	},
-	.num_irqs		= DA830_N_CP_INTC_IRQ,
+	.num_irqs		= 96,
 };
 
 void __init da830_init_irqs(void)

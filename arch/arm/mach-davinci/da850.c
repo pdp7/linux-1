@@ -658,7 +658,7 @@ static const struct davinci_cp_intc_config da850_cp_intc_config = {
 		.end		= DA8XX_CP_INTC_BASE + SZ_8K,
 		.flags		= IORESOURCE_MEM,
 	},
-	.num_irqs		= DA850_N_CP_INTC_IRQ,
+	.num_irqs		= 101,
 };
 
 void __init da850_init_irqs(void)

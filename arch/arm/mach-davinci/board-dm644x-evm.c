@@ -310,7 +310,7 @@ static struct platform_device rtc_dev = {
  * I2C GPIO expanders
  */
 
-#define PCF_Uxx_BASE(x)	(DAVINCI_N_GPIO + ((x) * 8))
+#define PCF_Uxx_BASE(x)	(144 + ((x) * 8))
 
 
 /* U2 -- LEDs */

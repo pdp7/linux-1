@@ -488,7 +488,7 @@ static int da830_evm_ui_expander_teardown(struct i2c_client *client, int gpio,
 }
 
 static struct pcf857x_platform_data __initdata da830_evm_ui_expander_info = {
-	.gpio_base	= DAVINCI_N_GPIO,
+	.gpio_base	= 144,
 	.setup		= da830_evm_ui_expander_setup,
 	.teardown	= da830_evm_ui_expander_teardown,
 };

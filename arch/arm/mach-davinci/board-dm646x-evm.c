@@ -333,7 +333,7 @@ static int evm_pcf_teardown(struct i2c_client *client, int gpio,
 }
 
 static struct pcf857x_platform_data pcf_data = {
-	.gpio_base	= DAVINCI_N_GPIO+1,
+	.gpio_base	= 145,
 	.setup		= evm_pcf_setup,
 	.teardown	= evm_pcf_teardown,
 };

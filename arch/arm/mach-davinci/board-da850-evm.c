@@ -562,7 +562,7 @@ static int da850_evm_ui_expander_teardown(struct i2c_client *client,
 
 /* assign the baseboard expander's GPIOs after the UI board's */
 #define DA850_UI_EXPANDER_N_GPIOS ARRAY_SIZE(da850_evm_ui_exp)
-#define DA850_BB_EXPANDER_GPIO_BASE (DAVINCI_N_GPIO + DA850_UI_EXPANDER_N_GPIOS)
+#define DA850_BB_EXPANDER_GPIO_BASE (144 + DA850_UI_EXPANDER_N_GPIOS)
 
 enum da850_evm_bb_exp_pins {
 	DA850_EVM_BB_EXP_DEEP_SLEEP_EN = 0,
@@ -735,7 +735,7 @@ static int da850_evm_bb_expander_teardown(struct i2c_client *client,
 }
 
 static struct pca953x_platform_data da850_evm_ui_expander_info = {
-	.gpio_base	= DAVINCI_N_GPIO,
+	.gpio_base	= 144,
 	.setup		= da850_evm_ui_expander_setup,
 	.teardown	= da850_evm_ui_expander_teardown,
 	.names		= da850_evm_ui_exp,

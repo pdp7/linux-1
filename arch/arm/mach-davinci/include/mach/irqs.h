@@ -29,12 +29,6 @@
 
 #include <asm/irq.h>
 
-/* Base address */
-#define DAVINCI_ARM_INTC_BASE 0x01C48000
-
-#define DAVINCI_INTC_START		NR_IRQS
-#define DAVINCI_INTC_IRQ(_irqnum)	(DAVINCI_INTC_START + (_irqnum))
-
 /* Interrupt lines */
 #define IRQ_VDINT0       DAVINCI_INTC_IRQ(0)
 #define IRQ_VDINT1       DAVINCI_INTC_IRQ(1)
@@ -99,10 +93,6 @@
 #define IRQ_COMMTX       DAVINCI_INTC_IRQ(61)
 #define IRQ_COMMRX       DAVINCI_INTC_IRQ(62)
 #define IRQ_EMUINT       DAVINCI_INTC_IRQ(63)
-
-#define DAVINCI_N_AINTC_IRQ	64
-
-#define ARCH_TIMER_IRQ IRQ_TINT1_TINT34
 
 /* DaVinci DM6467-specific Interrupts */
 #define IRQ_DM646X_VP_VERTINT0  DAVINCI_INTC_IRQ(0)
@@ -344,8 +334,6 @@
 #define IRQ_DA830_T12CMPINT6_1		DAVINCI_INTC_IRQ(88)
 #define IRQ_DA830_T12CMPINT7_1		DAVINCI_INTC_IRQ(89)
 
-#define DA830_N_CP_INTC_IRQ		96
-
 /* DA850 speicific interrupts */
 #define IRQ_DA850_MPUADDRERR0		DAVINCI_INTC_IRQ(27)
 #define IRQ_DA850_MPUPROTERR0		DAVINCI_INTC_IRQ(27)
@@ -400,11 +388,5 @@
 #define IRQ_DA850_MCBSP0XINT		DAVINCI_INTC_IRQ(98)
 #define IRQ_DA850_MCBSP1RINT		DAVINCI_INTC_IRQ(99)
 #define IRQ_DA850_MCBSP1XINT		DAVINCI_INTC_IRQ(100)
-
-#define DA850_N_CP_INTC_IRQ		101
-
-/* da850 currently has the most gpio pins (144) */
-#define DAVINCI_N_GPIO			144
-/* da850 currently has the most irqs so use DA850_N_CP_INTC_IRQ */
 
 #endif /* __ASM_ARCH_IRQS_H */
