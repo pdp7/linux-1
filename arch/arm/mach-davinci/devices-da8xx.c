@@ -65,7 +65,7 @@ void __iomem *da8xx_syscfg1_base;
 static struct plat_serial8250_port da8xx_serial0_pdata[] = {
 	{
 		.mapbase	= DA8XX_UART0_BASE,
-		.irq		= IRQ_DA8XX_UARTINT0,
+		.irq		= DAVINCI_INTC_IRQ(25),
 		.flags		= UPF_BOOT_AUTOCONF | UPF_SKIP_TEST |
 					UPF_IOREMAP,
 		.iotype		= UPIO_MEM,
@@ -78,7 +78,7 @@ static struct plat_serial8250_port da8xx_serial0_pdata[] = {
 static struct plat_serial8250_port da8xx_serial1_pdata[] = {
 	{
 		.mapbase	= DA8XX_UART1_BASE,
-		.irq		= IRQ_DA8XX_UARTINT1,
+		.irq		= DAVINCI_INTC_IRQ(53),
 		.flags		= UPF_BOOT_AUTOCONF | UPF_SKIP_TEST |
 					UPF_IOREMAP,
 		.iotype		= UPIO_MEM,
@@ -91,7 +91,7 @@ static struct plat_serial8250_port da8xx_serial1_pdata[] = {
 static struct plat_serial8250_port da8xx_serial2_pdata[] = {
 	{
 		.mapbase	= DA8XX_UART2_BASE,
-		.irq		= IRQ_DA8XX_UARTINT2,
+		.irq		= DAVINCI_INTC_IRQ(61),
 		.flags		= UPF_BOOT_AUTOCONF | UPF_SKIP_TEST |
 					UPF_IOREMAP,
 		.iotype		= UPIO_MEM,
@@ -172,12 +172,12 @@ static struct resource da8xx_edma0_resources[] = {
 	},
 	{
 		.name	= "edma3_ccint",
-		.start	= IRQ_DA8XX_CCINT0,
+		.start	= DAVINCI_INTC_IRQ(11),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
 		.name	= "edma3_ccerrint",
-		.start	= IRQ_DA8XX_CCERRINT,
+		.start	= DAVINCI_INTC_IRQ(12),
 		.flags	= IORESOURCE_IRQ,
 	},
 };
@@ -197,12 +197,12 @@ static struct resource da850_edma1_resources[] = {
 	},
 	{
 		.name	= "edma3_ccint",
-		.start	= IRQ_DA850_CCINT1,
+		.start	= DAVINCI_INTC_IRQ(93),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
 		.name	= "edma3_ccerrint",
-		.start	= IRQ_DA850_CCERRINT1,
+		.start	= DAVINCI_INTC_IRQ(94),
 		.flags	= IORESOURCE_IRQ,
 	},
 };
@@ -307,8 +307,8 @@ static struct resource da8xx_i2c_resources0[] = {
 		.flags	= IORESOURCE_MEM,
 	},
 	{
-		.start	= IRQ_DA8XX_I2CINT0,
-		.end	= IRQ_DA8XX_I2CINT0,
+		.start	= DAVINCI_INTC_IRQ(15),
+		.end	= DAVINCI_INTC_IRQ(15),
 		.flags	= IORESOURCE_IRQ,
 	},
 };
@@ -327,8 +327,8 @@ static struct resource da8xx_i2c_resources1[] = {
 		.flags	= IORESOURCE_MEM,
 	},
 	{
-		.start	= IRQ_DA8XX_I2CINT1,
-		.end	= IRQ_DA8XX_I2CINT1,
+		.start	= DAVINCI_INTC_IRQ(51),
+		.end	= DAVINCI_INTC_IRQ(51),
 		.flags	= IORESOURCE_IRQ,
 	},
 };
@@ -383,23 +383,23 @@ static struct resource da8xx_emac_resources[] = {
 		.flags	= IORESOURCE_MEM,
 	},
 	{
-		.start	= IRQ_DA8XX_C0_RX_THRESH_PULSE,
-		.end	= IRQ_DA8XX_C0_RX_THRESH_PULSE,
+		.start	= DAVINCI_INTC_IRQ(33),
+		.end	= DAVINCI_INTC_IRQ(33),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
-		.start	= IRQ_DA8XX_C0_RX_PULSE,
-		.end	= IRQ_DA8XX_C0_RX_PULSE,
+		.start	= DAVINCI_INTC_IRQ(34),
+		.end	= DAVINCI_INTC_IRQ(34),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
-		.start	= IRQ_DA8XX_C0_TX_PULSE,
-		.end	= IRQ_DA8XX_C0_TX_PULSE,
+		.start	= DAVINCI_INTC_IRQ(35),
+		.end	= DAVINCI_INTC_IRQ(35),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
-		.start	= IRQ_DA8XX_C0_MISC_PULSE,
-		.end	= IRQ_DA8XX_C0_MISC_PULSE,
+		.start	= DAVINCI_INTC_IRQ(36),
+		.end	= DAVINCI_INTC_IRQ(36),
 		.flags	= IORESOURCE_IRQ,
 	},
 };
@@ -471,7 +471,7 @@ static struct resource da830_mcasp1_resources[] = {
 	},
 	{
 		.name	= "common",
-		.start	= IRQ_DA8XX_MCASPINT,
+		.start	= DAVINCI_INTC_IRQ(54),
 		.flags	= IORESOURCE_IRQ,
 	},
 };
@@ -506,7 +506,7 @@ static struct resource da830_mcasp2_resources[] = {
 	},
 	{
 		.name	= "common",
-		.start	= IRQ_DA8XX_MCASPINT,
+		.start	= DAVINCI_INTC_IRQ(54),
 		.flags	= IORESOURCE_IRQ,
 	},
 };
@@ -541,7 +541,7 @@ static struct resource da850_mcasp_resources[] = {
 	},
 	{
 		.name	= "common",
-		.start	= IRQ_DA8XX_MCASPINT,
+		.start	= DAVINCI_INTC_IRQ(54),
 		.flags	= IORESOURCE_IRQ,
 	},
 };
@@ -589,43 +589,43 @@ static struct resource da8xx_pruss_resources[] = {
 		.flags	= IORESOURCE_MEM,
 	},
 	{
-		.start	= IRQ_DA8XX_EVTOUT0,
-		.end	= IRQ_DA8XX_EVTOUT0,
+		.start	= DAVINCI_INTC_IRQ(3),
+		.end	= DAVINCI_INTC_IRQ(3),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
-		.start	= IRQ_DA8XX_EVTOUT1,
-		.end	= IRQ_DA8XX_EVTOUT1,
+		.start	= DAVINCI_INTC_IRQ(4),
+		.end	= DAVINCI_INTC_IRQ(4),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
-		.start	= IRQ_DA8XX_EVTOUT2,
-		.end	= IRQ_DA8XX_EVTOUT2,
+		.start	= DAVINCI_INTC_IRQ(5),
+		.end	= DAVINCI_INTC_IRQ(5),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
-		.start	= IRQ_DA8XX_EVTOUT3,
-		.end	= IRQ_DA8XX_EVTOUT3,
+		.start	= DAVINCI_INTC_IRQ(6),
+		.end	= DAVINCI_INTC_IRQ(6),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
-		.start	= IRQ_DA8XX_EVTOUT4,
-		.end	= IRQ_DA8XX_EVTOUT4,
+		.start	= DAVINCI_INTC_IRQ(7),
+		.end	= DAVINCI_INTC_IRQ(7),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
-		.start	= IRQ_DA8XX_EVTOUT5,
-		.end	= IRQ_DA8XX_EVTOUT5,
+		.start	= DAVINCI_INTC_IRQ(8),
+		.end	= DAVINCI_INTC_IRQ(8),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
-		.start	= IRQ_DA8XX_EVTOUT6,
-		.end	= IRQ_DA8XX_EVTOUT6,
+		.start	= DAVINCI_INTC_IRQ(9),
+		.end	= DAVINCI_INTC_IRQ(9),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
-		.start	= IRQ_DA8XX_EVTOUT7,
-		.end	= IRQ_DA8XX_EVTOUT7,
+		.start	= DAVINCI_INTC_IRQ(10),
+		.end	= DAVINCI_INTC_IRQ(10),
 		.flags	= IORESOURCE_IRQ,
 	},
 };
@@ -675,8 +675,8 @@ static struct resource da8xx_lcdc_resources[] = {
 		.flags  = IORESOURCE_MEM,
 	},
 	[1] = { /* interrupt */
-		.start  = IRQ_DA8XX_LCDINT,
-		.end    = IRQ_DA8XX_LCDINT,
+		.start  = DAVINCI_INTC_IRQ(52),
+		.end    = DAVINCI_INTC_IRQ(52),
 		.flags  = IORESOURCE_IRQ,
 	},
 };
@@ -701,48 +701,48 @@ static struct resource da8xx_gpio_resources[] = {
 		.flags	= IORESOURCE_MEM,
 	},
 	{ /* interrupt */
-		.start	= IRQ_DA8XX_GPIO0,
-		.end	= IRQ_DA8XX_GPIO0,
+		.start	= DAVINCI_INTC_IRQ(42),
+		.end	= DAVINCI_INTC_IRQ(42),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
-		.start	= IRQ_DA8XX_GPIO1,
-		.end	= IRQ_DA8XX_GPIO1,
+		.start	= DAVINCI_INTC_IRQ(43),
+		.end	= DAVINCI_INTC_IRQ(43),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
-		.start	= IRQ_DA8XX_GPIO2,
-		.end	= IRQ_DA8XX_GPIO2,
+		.start	= DAVINCI_INTC_IRQ(44),
+		.end	= DAVINCI_INTC_IRQ(44),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
-		.start	= IRQ_DA8XX_GPIO3,
-		.end	= IRQ_DA8XX_GPIO3,
+		.start	= DAVINCI_INTC_IRQ(45),
+		.end	= DAVINCI_INTC_IRQ(45),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
-		.start	= IRQ_DA8XX_GPIO4,
-		.end	= IRQ_DA8XX_GPIO4,
+		.start	= DAVINCI_INTC_IRQ(46),
+		.end	= DAVINCI_INTC_IRQ(46),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
-		.start	= IRQ_DA8XX_GPIO5,
-		.end	= IRQ_DA8XX_GPIO5,
+		.start	= DAVINCI_INTC_IRQ(47),
+		.end	= DAVINCI_INTC_IRQ(47),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
-		.start	= IRQ_DA8XX_GPIO6,
-		.end	= IRQ_DA8XX_GPIO6,
+		.start	= DAVINCI_INTC_IRQ(48),
+		.end	= DAVINCI_INTC_IRQ(48),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
-		.start	= IRQ_DA8XX_GPIO7,
-		.end	= IRQ_DA8XX_GPIO7,
+		.start	= DAVINCI_INTC_IRQ(49),
+		.end	= DAVINCI_INTC_IRQ(49),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
-		.start	= IRQ_DA8XX_GPIO8,
-		.end	= IRQ_DA8XX_GPIO8,
+		.start	= DAVINCI_INTC_IRQ(50),
+		.end	= DAVINCI_INTC_IRQ(50),
 		.flags	= IORESOURCE_IRQ,
 	},
 };
@@ -767,8 +767,8 @@ static struct resource da8xx_mmcsd0_resources[] = {
 		.flags	= IORESOURCE_MEM,
 	},
 	{		/* interrupt */
-		.start	= IRQ_DA8XX_MMCSDINT0,
-		.end	= IRQ_DA8XX_MMCSDINT0,
+		.start	= DAVINCI_INTC_IRQ(16),
+		.end	= DAVINCI_INTC_IRQ(16),
 		.flags	= IORESOURCE_IRQ,
 	},
 };
@@ -794,8 +794,8 @@ static struct resource da850_mmcsd1_resources[] = {
 		.flags	= IORESOURCE_MEM,
 	},
 	{		/* interrupt */
-		.start	= IRQ_DA850_MMCSDINT0_1,
-		.end	= IRQ_DA850_MMCSDINT0_1,
+		.start	= DAVINCI_INTC_IRQ(72),
+		.end	= DAVINCI_INTC_IRQ(72),
 		.flags	= IORESOURCE_IRQ,
 	},
 };
@@ -846,8 +846,8 @@ static struct resource da8xx_rproc_resources[] = {
 		.flags		= IORESOURCE_MEM,
 	},
 	{ /* dsp irq */
-		.start		= IRQ_DA8XX_CHIPINT0,
-		.end		= IRQ_DA8XX_CHIPINT0,
+		.start		= DAVINCI_INTC_IRQ(28),
+		.end		= DAVINCI_INTC_IRQ(28),
 		.flags		= IORESOURCE_IRQ,
 	},
 };
@@ -937,13 +937,13 @@ static struct resource da8xx_rtc_resources[] = {
 		.flags		= IORESOURCE_MEM,
 	},
 	{ /* timer irq */
-		.start		= IRQ_DA8XX_RTC,
-		.end		= IRQ_DA8XX_RTC,
+		.start		= DAVINCI_INTC_IRQ(19),
+		.end		= DAVINCI_INTC_IRQ(19),
 		.flags		= IORESOURCE_IRQ,
 	},
 	{ /* alarm irq */
-		.start		= IRQ_DA8XX_RTC,
-		.end		= IRQ_DA8XX_RTC,
+		.start		= DAVINCI_INTC_IRQ(19),
+		.end		= DAVINCI_INTC_IRQ(19),
 		.flags		= IORESOURCE_IRQ,
 	},
 };
@@ -1010,8 +1010,8 @@ static struct resource da8xx_spi0_resources[] = {
 		.flags	= IORESOURCE_MEM,
 	},
 	[1] = {
-		.start	= IRQ_DA8XX_SPINT0,
-		.end	= IRQ_DA8XX_SPINT0,
+		.start	= DAVINCI_INTC_IRQ(20),
+		.end	= DAVINCI_INTC_IRQ(20),
 		.flags	= IORESOURCE_IRQ,
 	},
 };
@@ -1023,8 +1023,8 @@ static struct resource da8xx_spi1_resources[] = {
 		.flags	= IORESOURCE_MEM,
 	},
 	[1] = {
-		.start	= IRQ_DA8XX_SPINT1,
-		.end	= IRQ_DA8XX_SPINT1,
+		.start	= DAVINCI_INTC_IRQ(56),
+		.end	= DAVINCI_INTC_IRQ(56),
 		.flags	= IORESOURCE_IRQ,
 	},
 };
@@ -1104,7 +1104,7 @@ static struct resource da850_sata_resources[] = {
 		.flags	= IORESOURCE_MEM,
 	},
 	{
-		.start	= IRQ_DA850_SATAINT,
+		.start	= DAVINCI_INTC_IRQ(67),
 		.flags	= IORESOURCE_IRQ,
 	},
 };

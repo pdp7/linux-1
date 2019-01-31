@@ -54,7 +54,7 @@ static struct resource dm355_spi0_resources[] = {
 		.flags = IORESOURCE_MEM,
 	},
 	{
-		.start = IRQ_DM355_SPINT0_0,
+		.start = DAVINCI_INTC_IRQ(42),
 		.flags = IORESOURCE_IRQ,
 	},
 };
@@ -220,12 +220,12 @@ static struct resource edma_resources[] = {
 	},
 	{
 		.name	= "edma3_ccint",
-		.start	= IRQ_CCINT0,
+		.start	= DAVINCI_INTC_IRQ(16),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
 		.name	= "edma3_ccerrint",
-		.start	= IRQ_CCERRINT,
+		.start	= DAVINCI_INTC_IRQ(17),
 		.flags	= IORESOURCE_IRQ,
 	},
 	/* not using (or muxing) TC*_ERR */
@@ -305,13 +305,13 @@ static struct platform_device dm355_vpss_device = {
 
 static struct resource vpfe_resources[] = {
 	{
-		.start          = IRQ_VDINT0,
-		.end            = IRQ_VDINT0,
+		.start          = DAVINCI_INTC_IRQ(0),
+		.end            = DAVINCI_INTC_IRQ(0),
 		.flags          = IORESOURCE_IRQ,
 	},
 	{
-		.start          = IRQ_VDINT1,
-		.end            = IRQ_VDINT1,
+		.start          = DAVINCI_INTC_IRQ(1),
+		.end            = DAVINCI_INTC_IRQ(1),
 		.flags          = IORESOURCE_IRQ,
 	},
 };
@@ -369,8 +369,8 @@ static struct platform_device dm355_osd_dev = {
 
 static struct resource dm355_venc_resources[] = {
 	{
-		.start	= IRQ_VENCINT,
-		.end	= IRQ_VENCINT,
+		.start	= DAVINCI_INTC_IRQ(8),
+		.end	= DAVINCI_INTC_IRQ(8),
 		.flags	= IORESOURCE_IRQ,
 	},
 	/* venc registers io space */
@@ -389,8 +389,8 @@ static struct resource dm355_venc_resources[] = {
 
 static struct resource dm355_v4l2_disp_resources[] = {
 	{
-		.start	= IRQ_VENCINT,
-		.end	= IRQ_VENCINT,
+		.start	= DAVINCI_INTC_IRQ(8),
+		.end	= DAVINCI_INTC_IRQ(8),
 		.flags	= IORESOURCE_IRQ,
 	},
 	/* venc registers io space */
@@ -494,38 +494,38 @@ static struct resource dm355_gpio_resources[] = {
 		.flags	= IORESOURCE_MEM,
 	},
 	{	/* interrupt */
-		.start	= IRQ_DM355_GPIOBNK0,
-		.end	= IRQ_DM355_GPIOBNK0,
+		.start	= DAVINCI_INTC_IRQ(54),
+		.end	= DAVINCI_INTC_IRQ(54),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
-		.start	= IRQ_DM355_GPIOBNK1,
-		.end	= IRQ_DM355_GPIOBNK1,
+		.start	= DAVINCI_INTC_IRQ(55),
+		.end	= DAVINCI_INTC_IRQ(55),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
-		.start	= IRQ_DM355_GPIOBNK2,
-		.end	= IRQ_DM355_GPIOBNK2,
+		.start	= DAVINCI_INTC_IRQ(56),
+		.end	= DAVINCI_INTC_IRQ(56),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
-		.start	= IRQ_DM355_GPIOBNK3,
-		.end	= IRQ_DM355_GPIOBNK3,
+		.start	= DAVINCI_INTC_IRQ(57),
+		.end	= DAVINCI_INTC_IRQ(57),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
-		.start	= IRQ_DM355_GPIOBNK4,
-		.end	= IRQ_DM355_GPIOBNK4,
+		.start	= DAVINCI_INTC_IRQ(58),
+		.end	= DAVINCI_INTC_IRQ(58),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
-		.start	= IRQ_DM355_GPIOBNK5,
-		.end	= IRQ_DM355_GPIOBNK5,
+		.start	= DAVINCI_INTC_IRQ(59),
+		.end	= DAVINCI_INTC_IRQ(59),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
-		.start	= IRQ_DM355_GPIOBNK6,
-		.end	= IRQ_DM355_GPIOBNK6,
+		.start	= DAVINCI_INTC_IRQ(60),
+		.end	= DAVINCI_INTC_IRQ(60),
 		.flags	= IORESOURCE_IRQ,
 	},
 };
@@ -579,7 +579,7 @@ static struct davinci_timer_info dm355_timer_info = {
 static struct plat_serial8250_port dm355_serial0_platform_data[] = {
 	{
 		.mapbase	= DAVINCI_UART0_BASE,
-		.irq		= IRQ_UARTINT0,
+		.irq		= DAVINCI_INTC_IRQ(40),
 		.flags		= UPF_BOOT_AUTOCONF | UPF_SKIP_TEST |
 				  UPF_IOREMAP,
 		.iotype		= UPIO_MEM,
@@ -592,7 +592,7 @@ static struct plat_serial8250_port dm355_serial0_platform_data[] = {
 static struct plat_serial8250_port dm355_serial1_platform_data[] = {
 	{
 		.mapbase	= DAVINCI_UART1_BASE,
-		.irq		= IRQ_UARTINT1,
+		.irq		= DAVINCI_INTC_IRQ(41),
 		.flags		= UPF_BOOT_AUTOCONF | UPF_SKIP_TEST |
 				  UPF_IOREMAP,
 		.iotype		= UPIO_MEM,
@@ -605,7 +605,7 @@ static struct plat_serial8250_port dm355_serial1_platform_data[] = {
 static struct plat_serial8250_port dm355_serial2_platform_data[] = {
 	{
 		.mapbase	= DM355_UART2_BASE,
-		.irq		= IRQ_DM355_UARTINT2,
+		.irq		= DAVINCI_INTC_IRQ(14),
 		.flags		= UPF_BOOT_AUTOCONF | UPF_SKIP_TEST |
 				  UPF_IOREMAP,
 		.iotype		= UPIO_MEM,

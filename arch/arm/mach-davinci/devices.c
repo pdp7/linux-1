@@ -56,7 +56,7 @@ static struct resource i2c_resources[] = {
 		.flags		= IORESOURCE_MEM,
 	},
 	{
-		.start		= IRQ_I2C,
+		.start		= DAVINCI_INTC_IRQ(39),
 		.flags		= IORESOURCE_IRQ,
 	},
 };
@@ -84,8 +84,8 @@ static struct resource ide_resources[] = {
 		.flags		= IORESOURCE_MEM,
 	},
 	{
-		.start		= IRQ_IDE,
-		.end		= IRQ_IDE,
+		.start		= DAVINCI_INTC_IRQ(22),
+		.end		= DAVINCI_INTC_IRQ(22),
 		.flags		= IORESOURCE_IRQ,
 	},
 };
@@ -110,7 +110,7 @@ void __init davinci_init_ide(void)
 		davinci_cfg_reg(DM644X_ATAEN);
 		davinci_cfg_reg(DM644X_HDIREN);
 	} else if (cpu_is_davinci_dm646x()) {
-		/* IRQ_DM646X_IDE is the same as IRQ_IDE */
+		/* DAVINCI_INTC_IRQ(22) is the same as DAVINCI_INTC_IRQ(22) */
 		davinci_cfg_reg(DM646X_ATAEN);
 	} else {
 		WARN_ON(1);
@@ -133,11 +133,11 @@ static struct resource mmcsd0_resources[] = {
 	},
 	/* IRQs:  MMC/SD, then SDIO */
 	{
-		.start = IRQ_MMCINT,
+		.start = DAVINCI_INTC_IRQ(26),
 		.flags = IORESOURCE_IRQ,
 	}, {
 		/* different on dm355 */
-		.start = IRQ_SDIOINT,
+		.start = DAVINCI_INTC_IRQ(27),
 		.flags = IORESOURCE_IRQ,
 	},
 };
@@ -163,10 +163,10 @@ static struct resource mmcsd1_resources[] = {
 	},
 	/* IRQs:  MMC/SD, then SDIO */
 	{
-		.start = IRQ_DM355_MMCINT1,
+		.start = DAVINCI_INTC_IRQ(27),
 		.flags = IORESOURCE_IRQ,
 	}, {
-		.start = IRQ_DM355_SDIOINT1,
+		.start = DAVINCI_INTC_IRQ(31),
 		.flags = IORESOURCE_IRQ,
 	},
 };
@@ -219,7 +219,7 @@ void __init davinci_setup_mmc(int module, struct davinci_mmc_config *config)
 			mmcsd1_resources[0].start = DM365_MMCSD1_BASE;
 			mmcsd1_resources[0].end = DM365_MMCSD1_BASE +
 							SZ_4K - 1;
-			mmcsd1_resources[2].start = IRQ_DM365_SDIOINT1;
+			mmcsd1_resources[2].start = DAVINCI_INTC_IRQ(31);
 			davinci_mmcsd1_device.name = "da830-mmc";
 		} else
 			break;
@@ -230,7 +230,7 @@ void __init davinci_setup_mmc(int module, struct davinci_mmc_config *config)
 		if (cpu_is_davinci_dm355()) {
 			mmcsd0_resources[0].start = DM355_MMCSD0_BASE;
 			mmcsd0_resources[0].end = DM355_MMCSD0_BASE + SZ_4K - 1;
-			mmcsd0_resources[2].start = IRQ_DM355_SDIOINT0;
+			mmcsd0_resources[2].start = DAVINCI_INTC_IRQ(23);
 
 			/* expose all 6 MMC0 signals:  CLK, CMD, DATA[0..3] */
 			davinci_cfg_reg(DM355_MMCSD0);
@@ -241,7 +241,7 @@ void __init davinci_setup_mmc(int module, struct davinci_mmc_config *config)
 			mmcsd0_resources[0].start = DM365_MMCSD0_BASE;
 			mmcsd0_resources[0].end = DM365_MMCSD0_BASE +
 							SZ_4K - 1;
-			mmcsd0_resources[2].start = IRQ_DM365_SDIOINT0;
+			mmcsd0_resources[2].start = DAVINCI_INTC_IRQ(23);
 			davinci_mmcsd0_device.name = "da830-mmc";
 		} else if (cpu_is_davinci_dm644x()) {
 			/* REVISIT: should this be in board-init code? */
@@ -313,13 +313,13 @@ int davinci_gpio_register(struct resource *res, int size, void *pdata)
 struct davinci_timer_instance davinci_timer_instance[2] = {
 	{
 		.base		= DAVINCI_TIMER0_BASE,
-		.bottom_irq	= IRQ_TINT0_TINT12,
-		.top_irq	= IRQ_TINT0_TINT34,
+		.bottom_irq	= DAVINCI_INTC_IRQ(32),
+		.top_irq	= DAVINCI_INTC_IRQ(33),
 	},
 	{
 		.base		= DAVINCI_TIMER1_BASE,
-		.bottom_irq	= IRQ_TINT1_TINT12,
-		.top_irq	= IRQ_TINT1_TINT34,
+		.bottom_irq	= DAVINCI_INTC_IRQ(34),
+		.top_irq	= DAVINCI_INTC_IRQ(35),
 	},
 };
 

@@ -61,8 +61,8 @@ static struct resource dm644x_emac_resources[] = {
 		.flags	= IORESOURCE_MEM,
 	},
 	{
-		.start = IRQ_EMACINT,
-		.end   = IRQ_EMACINT,
+		.start = DAVINCI_INTC_IRQ(13),
+		.end   = DAVINCI_INTC_IRQ(13),
 		.flags = IORESOURCE_IRQ,
 	},
 };
@@ -206,12 +206,12 @@ static struct resource edma_resources[] = {
 	},
 	{
 		.name	= "edma3_ccint",
-		.start	= IRQ_CCINT0,
+		.start	= DAVINCI_INTC_IRQ(16),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
 		.name	= "edma3_ccerrint",
-		.start	= IRQ_CCERRINT,
+		.start	= DAVINCI_INTC_IRQ(17),
 		.flags	= IORESOURCE_IRQ,
 	},
 	/* not using TC*_ERR */
@@ -276,13 +276,13 @@ static struct platform_device dm644x_vpss_device = {
 
 static struct resource dm644x_vpfe_resources[] = {
 	{
-		.start          = IRQ_VDINT0,
-		.end            = IRQ_VDINT0,
+		.start          = DAVINCI_INTC_IRQ(0),
+		.end            = DAVINCI_INTC_IRQ(0),
 		.flags          = IORESOURCE_IRQ,
 	},
 	{
-		.start          = IRQ_VDINT1,
-		.end            = IRQ_VDINT1,
+		.start          = DAVINCI_INTC_IRQ(1),
+		.end            = DAVINCI_INTC_IRQ(1),
 		.flags          = IORESOURCE_IRQ,
 	},
 };
@@ -388,8 +388,8 @@ static int dm644x_venc_setup_clock(enum vpbe_enc_timings_type type,
 
 static struct resource dm644x_v4l2_disp_resources[] = {
 	{
-		.start	= IRQ_VENCINT,
-		.end	= IRQ_VENCINT,
+		.start	= DAVINCI_INTC_IRQ(8),
+		.end	= DAVINCI_INTC_IRQ(8),
 		.flags	= IORESOURCE_IRQ,
 	},
 };
@@ -437,28 +437,28 @@ static struct resource dm644_gpio_resources[] = {
 		.flags	= IORESOURCE_MEM,
 	},
 	{	/* interrupt */
-		.start	= IRQ_GPIOBNK0,
-		.end	= IRQ_GPIOBNK0,
+		.start	= DAVINCI_INTC_IRQ(56),
+		.end	= DAVINCI_INTC_IRQ(56),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
-		.start	= IRQ_GPIOBNK1,
-		.end	= IRQ_GPIOBNK1,
+		.start	= DAVINCI_INTC_IRQ(57),
+		.end	= DAVINCI_INTC_IRQ(57),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
-		.start	= IRQ_GPIOBNK2,
-		.end	= IRQ_GPIOBNK2,
+		.start	= DAVINCI_INTC_IRQ(58),
+		.end	= DAVINCI_INTC_IRQ(58),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
-		.start	= IRQ_GPIOBNK3,
-		.end	= IRQ_GPIOBNK3,
+		.start	= DAVINCI_INTC_IRQ(59),
+		.end	= DAVINCI_INTC_IRQ(59),
 		.flags	= IORESOURCE_IRQ,
 	},
 	{
-		.start	= IRQ_GPIOBNK4,
-		.end	= IRQ_GPIOBNK4,
+		.start	= DAVINCI_INTC_IRQ(60),
+		.end	= DAVINCI_INTC_IRQ(60),
 		.flags	= IORESOURCE_IRQ,
 	},
 };
@@ -519,7 +519,7 @@ static struct davinci_timer_info dm644x_timer_info = {
 static struct plat_serial8250_port dm644x_serial0_platform_data[] = {
 	{
 		.mapbase	= DAVINCI_UART0_BASE,
-		.irq		= IRQ_UARTINT0,
+		.irq		= DAVINCI_INTC_IRQ(40),
 		.flags		= UPF_BOOT_AUTOCONF | UPF_SKIP_TEST |
 				  UPF_IOREMAP,
 		.iotype		= UPIO_MEM,
@@ -532,7 +532,7 @@ static struct plat_serial8250_port dm644x_serial0_platform_data[] = {
 static struct plat_serial8250_port dm644x_serial1_platform_data[] = {
 	{
 		.mapbase	= DAVINCI_UART1_BASE,
-		.irq		= IRQ_UARTINT1,
+		.irq		= DAVINCI_INTC_IRQ(41),
 		.flags		= UPF_BOOT_AUTOCONF | UPF_SKIP_TEST |
 				  UPF_IOREMAP,
 		.iotype		= UPIO_MEM,
@@ -545,7 +545,7 @@ static struct plat_serial8250_port dm644x_serial1_platform_data[] = {
 static struct plat_serial8250_port dm644x_serial2_platform_data[] = {
 	{
 		.mapbase	= DAVINCI_UART2_BASE,
-		.irq		= IRQ_UARTINT2,
+		.irq		= DAVINCI_INTC_IRQ(42),
 		.flags		= UPF_BOOT_AUTOCONF | UPF_SKIP_TEST |
 				  UPF_IOREMAP,
 		.iotype		= UPIO_MEM,
@@ -615,7 +615,7 @@ void __init dm644x_init_time(void)
 	struct clk *clk;
 
 	/* Needed by the dsp. */
-	irq_set_handler(IRQ_TINT1_TINT34, handle_level_irq);
+	irq_set_handler(DAVINCI_INTC_IRQ(35), handle_level_irq);
 
 	clk_register_fixed_rate(NULL, "ref_clk", NULL, 0, DM644X_REF_FREQ);
 
