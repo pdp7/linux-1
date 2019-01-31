@@ -45,7 +45,6 @@
 #include <mach/common.h>
 #include <mach/da8xx.h>
 #include <mach/mux.h>
-#include <mach/irqs.h>
 #include "sram.h"
 
 #include <asm/mach-types.h>

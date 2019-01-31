@@ -9,7 +9,6 @@
 #include <linux/usb/musb.h>
 
 #include <mach/common.h>
-#include <mach/irqs.h>
 #include <mach/cputype.h>
 #include <linux/platform_data/usb-davinci.h>
 

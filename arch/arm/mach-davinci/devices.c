@@ -17,7 +17,6 @@
 
 #include <mach/hardware.h>
 #include <linux/platform_data/i2c-davinci.h>
-#include <mach/irqs.h>
 #include <mach/cputype.h>
 #include <mach/mux.h>
 #include <linux/platform_data/mmc-davinci.h>

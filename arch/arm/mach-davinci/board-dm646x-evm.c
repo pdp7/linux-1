@@ -44,7 +44,6 @@
 #include <asm/mach/arch.h>
 
 #include <mach/common.h>
-#include <mach/irqs.h>
 #include <mach/serial.h>
 
 #include "davinci.h"
