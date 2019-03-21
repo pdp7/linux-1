@@ -151,6 +151,15 @@
 			system-clock-frequency = <24576000>;
 		};
 	};
+
+	cvdd: regulator0 {
+		compatible = "regulator-fixed";
+		regulator-name = "cvdd";
+		regulator-min-microvolt = <1200000>;
+		regulator-max-microvolt = <1200000>;
+		regulator-always-on;
+		regulator-boot-on;
+	};
 };
 
 &ecap2 {
@@ -189,6 +198,27 @@
 			0x30 0x01100000  0x0ff00000
 		>;
 	};
+};
+
+&cpu {
+	cpu-supply = <&cvdd>;
+};
+
+/*
+ * DA850-EVM has a fixed CVDD of 1.2V - we cannot go below 300MHz or
+ * above 375MHz.
+ */
+
+&opp_100 {
+	status = "disabled";
+};
+
+&opp_200 {
+	status = "disabled";
+};
+
+&opp_375 {
+	status = "okay";
 };
 
 &sata {
