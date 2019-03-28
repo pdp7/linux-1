@@ -206,8 +206,25 @@ static irqreturn_t ohci_da8xx_oc_handler(int irq, void *data)
 {
 	struct da8xx_ohci_hcd *da8xx_ohci = data;
 
-	if (gpiod_get_value(da8xx_ohci->oc_gpio))
-		gpiod_set_value(da8xx_ohci->vbus_gpio, 0);
+	if (gpiod_get_value(da8xx_ohci->oc_gpio)) {
+		if (da8xx_ohci->vbus_gpio)
+			gpiod_set_value(da8xx_ohci->vbus_gpio, 0);
+		else if (da8xx_ohci->vbus_reg)
+			return IRQ_WAKE_THREAD;
+	}
+
+	return IRQ_HANDLED;
+}
+
+static irqreturn_t ohci_da8xx_oc_thread(int irq, void *data)
+{
+	struct da8xx_ohci_hcd *da8xx_ohci = data;
+	struct device *dev = da8xx_ohci->hcd->self.controller;
+	int ret;
+
+	ret = regulator_disable(da8xx_ohci->vbus_reg);
+	if (ret)
+		dev_err(dev, "Failed to disable regulator: %d\n", ret);
 
 	return IRQ_HANDLED;
 }
@@ -434,9 +451,11 @@ static int ohci_da8xx_probe(struct platform_device *pdev)
 		if (oc_irq < 0)
 			goto err;
 
-		error = devm_request_irq(dev, oc_irq, ohci_da8xx_oc_handler,
-				IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
-				"OHCI over-current indicator", da8xx_ohci);
+		error = devm_request_threaded_irq(dev, oc_irq,
+				ohci_da8xx_oc_handler, ohci_da8xx_oc_thread,
+				IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING |
+				IRQF_ONESHOT, "OHCI over-current indicator",
+				da8xx_ohci);
 		if (error)
 			goto err;
 	}
