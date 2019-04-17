@@ -42,6 +42,8 @@
 #define DAVINCI_TIMER_MIN_DELTA			0x01
 #define DAVINCI_TIMER_MAX_DELTA			0xfffffffe
 
+#define DAVINCI_TIMER_CLKSRC_BITS		32
+
 #define DAVINCI_TIMER_TGCR_DEFAULT \
 		(DAVINCI_TIMER_TIMMODE_32BIT_UNCHAINED | DAVINCI_TIMER_UNRESET)
 
@@ -60,6 +62,16 @@ struct davinci_clockevent {
 	unsigned int enamode_oneshot;
 	unsigned int enamode_mask;
 };
+
+/*
+ * This must be globally accessible by davinci_timer_read_sched_clock(), so
+ * let's keep it here.
+ */
+static struct {
+	struct clocksource dev;
+	void __iomem *base;
+	unsigned int tim_off;
+} davinci_clocksource;
 
 static struct davinci_clockevent *
 to_davinci_clockevent(struct clock_event_device *clockevent)
@@ -159,6 +171,32 @@ static irqreturn_t davinci_timer_irq_timer(int irq, void *data)
 	return IRQ_HANDLED;
 }
 
+static u64 notrace davinci_timer_read_sched_clock(void)
+{
+	return readl_relaxed(davinci_clocksource.base +
+			     davinci_clocksource.tim_off);
+}
+
+static u64 davinci_clocksource_read(struct clocksource *dev)
+{
+	return davinci_timer_read_sched_clock();
+}
+
+static void davinci_clocksource_init(void __iomem *base, unsigned int tim_off,
+				     unsigned int prd_off, unsigned int shift)
+{
+	davinci_tcr_update(base,
+			   DAVINCI_TIMER_ENAMODE_MASK << shift,
+			   DAVINCI_TIMER_ENAMODE_DISABLED << shift);
+
+	writel_relaxed(0x0, base + tim_off);
+	writel_relaxed(UINT_MAX, base + prd_off);
+
+	davinci_tcr_update(base,
+			   DAVINCI_TIMER_ENAMODE_MASK << shift,
+			   DAVINCI_TIMER_ENAMODE_ONESHOT << shift);
+}
+
 static void davinci_timer_init(void __iomem *base)
 {
 	/* Set clock to internal mode and disable it. */
@@ -247,6 +285,38 @@ int __init davinci_timer_register(struct clk *clk,
 	clockevents_config_and_register(&clockevent->dev, tick_rate,
 					DAVINCI_TIMER_MIN_DELTA,
 					DAVINCI_TIMER_MAX_DELTA);
+
+	davinci_clocksource.dev.rating = 300;
+	davinci_clocksource.dev.read = davinci_clocksource_read;
+	davinci_clocksource.dev.mask =
+			CLOCKSOURCE_MASK(DAVINCI_TIMER_CLKSRC_BITS);
+	davinci_clocksource.dev.flags = CLOCK_SOURCE_IS_CONTINUOUS;
+	davinci_clocksource.base = base;
+
+	if (timer_cfg->cmp_off) {
+		davinci_clocksource.dev.name = "tim12";
+		davinci_clocksource.tim_off = DAVINCI_TIMER_REG_TIM12;
+		davinci_clocksource_init(base,
+					 DAVINCI_TIMER_REG_TIM12,
+					 DAVINCI_TIMER_REG_PRD12,
+					 DAVINCI_TIMER_ENAMODE_SHIFT_TIM12);
+	} else {
+		davinci_clocksource.dev.name = "tim34";
+		davinci_clocksource.tim_off = DAVINCI_TIMER_REG_TIM34;
+		davinci_clocksource_init(base,
+					 DAVINCI_TIMER_REG_TIM34,
+					 DAVINCI_TIMER_REG_PRD34,
+					 DAVINCI_TIMER_ENAMODE_SHIFT_TIM34);
+	}
+
+	rv = clocksource_register_hz(&davinci_clocksource.dev, tick_rate);
+	if (rv) {
+		pr_err("Unable to register clocksource");
+		return rv;
+	}
+
+	sched_clock_register(davinci_timer_read_sched_clock,
+			     DAVINCI_TIMER_CLKSRC_BITS, tick_rate);
 
 	return 0;
 }
