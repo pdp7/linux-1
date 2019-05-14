@@ -7,6 +7,23 @@
 #include <linux/irq_sim.h>
 #include <linux/irq.h>
 
+struct irq_sim_work_ctx {
+	struct irq_work		work;
+	unsigned long		*pending;
+};
+
+struct irq_sim_irq_ctx {
+	int			irqnum;
+	bool			enabled;
+};
+
+struct irq_sim {
+	struct irq_sim_work_ctx	work_ctx;
+	int			irq_base;
+	unsigned int		irq_count;
+	struct irq_sim_irq_ctx	*irqs;
+};
+
 struct irq_sim_devres {
 	struct irq_sim		*sim;
 };
@@ -63,34 +80,42 @@ static void irq_sim_handle_irq(struct irq_work *work)
 }
 
 /**
- * irq_sim_init - Initialize the interrupt simulator: allocate a range of
- *                dummy interrupts.
+ * irq_sim_new - Create a new interrupt simulator: allocate a range of
+ *               dummy interrupts.
  *
- * @sim:        The interrupt simulator object to initialize.
  * @num_irqs:   Number of interrupts to allocate
  *
- * On success: return the base of the allocated interrupt range.
- * On failure: a negative errno.
+ * On success: return the new irq_sim object.
+ * On failure: a negative errno wrapped with ERR_PTR().
  */
-int irq_sim_init(struct irq_sim *sim, unsigned int num_irqs)
+struct irq_sim *irq_sim_new(unsigned int num_irqs)
 {
+	struct irq_sim *sim;
 	int i;
 
+	sim = kmalloc(sizeof(*sim), GFP_KERNEL);
+	if (!sim)
+		return ERR_PTR(-ENOMEM);
+
 	sim->irqs = kmalloc_array(num_irqs, sizeof(*sim->irqs), GFP_KERNEL);
-	if (!sim->irqs)
-		return -ENOMEM;
+	if (!sim->irqs) {
+		kfree(sim);
+		return ERR_PTR(-ENOMEM);
+	}
 
 	sim->irq_base = irq_alloc_descs(-1, 0, num_irqs, 0);
 	if (sim->irq_base < 0) {
 		kfree(sim->irqs);
-		return sim->irq_base;
+		kfree(sim);
+		return ERR_PTR(sim->irq_base);
 	}
 
 	sim->work_ctx.pending = bitmap_zalloc(num_irqs, GFP_KERNEL);
 	if (!sim->work_ctx.pending) {
 		kfree(sim->irqs);
+		kfree(sim);
 		irq_free_descs(sim->irq_base, num_irqs);
-		return -ENOMEM;
+		return ERR_PTR(-ENOMEM);
 	}
 
 	for (i = 0; i < num_irqs; i++) {
@@ -106,64 +131,60 @@ int irq_sim_init(struct irq_sim *sim, unsigned int num_irqs)
 	init_irq_work(&sim->work_ctx.work, irq_sim_handle_irq);
 	sim->irq_count = num_irqs;
 
-	return sim->irq_base;
+	return sim;
 }
-EXPORT_SYMBOL_GPL(irq_sim_init);
+EXPORT_SYMBOL_GPL(irq_sim_new);
 
 /**
- * irq_sim_fini - Deinitialize the interrupt simulator: free the interrupt
+ * irq_sim_free - Deinitialize the interrupt simulator: free the interrupt
  *                descriptors and allocated memory.
  *
  * @sim:        The interrupt simulator to tear down.
  */
-void irq_sim_fini(struct irq_sim *sim)
+void irq_sim_free(struct irq_sim *sim)
 {
 	irq_work_sync(&sim->work_ctx.work);
 	bitmap_free(sim->work_ctx.pending);
 	irq_free_descs(sim->irq_base, sim->irq_count);
 	kfree(sim->irqs);
+	kfree(sim);
 }
-EXPORT_SYMBOL_GPL(irq_sim_fini);
+EXPORT_SYMBOL_GPL(irq_sim_free);
 
 static void devm_irq_sim_release(struct device *dev, void *res)
 {
 	struct irq_sim_devres *this = res;
 
-	irq_sim_fini(this->sim);
+	irq_sim_free(this->sim);
 }
 
 /**
- * irq_sim_init - Initialize the interrupt simulator for a managed device.
+ * devm_irq_sim_new - Create a new interrupt simulator for a managed device.
  *
  * @dev:        Device to initialize the simulator object for.
- * @sim:        The interrupt simulator object to initialize.
  * @num_irqs:   Number of interrupts to allocate
  *
- * On success: return the base of the allocated interrupt range.
- * On failure: a negative errno.
+ * On success: return a new irq_sim object.
+ * On failure: a negative errno wrapped with ERR_PTR().
  */
-int devm_irq_sim_init(struct device *dev, struct irq_sim *sim,
-		      unsigned int num_irqs)
+struct irq_sim *devm_irq_sim_new(struct device *dev, unsigned int num_irqs)
 {
 	struct irq_sim_devres *dr;
-	int rv;
 
 	dr = devres_alloc(devm_irq_sim_release, sizeof(*dr), GFP_KERNEL);
 	if (!dr)
-		return -ENOMEM;
+		return ERR_PTR(-ENOMEM);
 
-	rv = irq_sim_init(sim, num_irqs);
-	if (rv < 0) {
+	dr->sim = irq_sim_new(num_irqs);
+	if (IS_ERR(dr->sim)) {
 		devres_free(dr);
-		return rv;
+		return dr->sim;
 	}
 
-	dr->sim = sim;
 	devres_add(dev, dr);
-
-	return rv;
+	return dr->sim;
 }
-EXPORT_SYMBOL_GPL(devm_irq_sim_init);
+EXPORT_SYMBOL_GPL(devm_irq_sim_new);
 
 /**
  * irq_sim_fire - Enqueue an interrupt.

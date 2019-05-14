@@ -53,7 +53,7 @@ struct gpio_mockup_line_status {
 struct gpio_mockup_chip {
 	struct gpio_chip gc;
 	struct gpio_mockup_line_status *lines;
-	struct irq_sim irqsim;
+	struct irq_sim *irqsim;
 	struct dentry *dbg_dir;
 	struct mutex lock;
 };
@@ -186,7 +186,7 @@ static int gpio_mockup_to_irq(struct gpio_chip *gc, unsigned int offset)
 {
 	struct gpio_mockup_chip *chip = gpiochip_get_data(gc);
 
-	return irq_sim_irqnum(&chip->irqsim, offset);
+	return irq_sim_irqnum(chip->irqsim, offset);
 }
 
 static void gpio_mockup_free(struct gpio_chip *gc, unsigned int offset)
@@ -247,7 +247,7 @@ static ssize_t gpio_mockup_debugfs_write(struct file *file,
 	chip = priv->chip;
 	gc = &chip->gc;
 	desc = &gc->gpiodev->descs[priv->offset];
-	sim = &chip->irqsim;
+	sim = chip->irqsim;
 
 	mutex_lock(&chip->lock);
 
@@ -431,9 +431,9 @@ static int gpio_mockup_probe(struct platform_device *pdev)
 			return rv;
 	}
 
-	rv = devm_irq_sim_init(dev, &chip->irqsim, gc->ngpio);
-	if (rv < 0)
-		return rv;
+	chip->irqsim = devm_irq_sim_new(dev, gc->ngpio);
+	if (IS_ERR(chip->irqsim))
+		return PTR_ERR(chip->irqsim);
 
 	rv = devm_gpiochip_add_data(dev, &chip->gc, chip);
 	if (rv)
