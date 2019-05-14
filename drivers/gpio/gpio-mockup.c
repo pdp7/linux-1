@@ -186,7 +186,7 @@ static int gpio_mockup_to_irq(struct gpio_chip *gc, unsigned int offset)
 {
 	struct gpio_mockup_chip *chip = gpiochip_get_data(gc);
 
-	return irq_sim_irqnum(chip->irqsim, offset);
+	return irq_create_mapping(irq_sim_get_domain(chip->irqsim), offset);
 }
 
 static void gpio_mockup_free(struct gpio_chip *gc, unsigned int offset)
@@ -228,6 +228,7 @@ static ssize_t gpio_mockup_debugfs_write(struct file *file,
 	struct gpio_mockup_dbgfs_private *priv;
 	int rv, val, curr, irq, irq_type;
 	struct gpio_mockup_chip *chip;
+	struct irq_domain *domain;
 	struct seq_file *sfile;
 	struct gpio_desc *desc;
 	struct gpio_chip *gc;
@@ -248,6 +249,7 @@ static ssize_t gpio_mockup_debugfs_write(struct file *file,
 	gc = &chip->gc;
 	desc = &gc->gpiodev->descs[priv->offset];
 	sim = chip->irqsim;
+	domain = irq_sim_get_domain(sim);
 
 	mutex_lock(&chip->lock);
 
@@ -257,12 +259,15 @@ static ssize_t gpio_mockup_debugfs_write(struct file *file,
 		if (curr == val)
 			goto out;
 
-		irq = irq_sim_irqnum(sim, priv->offset);
+		irq = irq_find_mapping(domain, priv->offset);
+		if (!irq)
+			return -ENOENT;
+
 		irq_type = irq_get_trigger_type(irq);
 
 		if ((val == 1 && (irq_type & IRQ_TYPE_EDGE_RISING)) ||
 		    (val == 0 && (irq_type & IRQ_TYPE_EDGE_FALLING)))
-			irq_sim_fire(sim, priv->offset);
+			irq_sim_fire(irq);
 	}
 
 	/* Change the value unless we're actively driving the line. */

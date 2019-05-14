@@ -7,6 +7,7 @@
 #define _LINUX_IRQ_SIM_H
 
 #include <linux/irq_work.h>
+#include <linux/irqdomain.h>
 #include <linux/device.h>
 
 /*
@@ -19,7 +20,7 @@ struct irq_sim;
 struct irq_sim *irq_sim_new(unsigned int num_irqs);
 struct irq_sim *devm_irq_sim_new(struct device *dev, unsigned int num_irqs);
 void irq_sim_free(struct irq_sim *sim);
-void irq_sim_fire(struct irq_sim *sim, unsigned int offset);
-int irq_sim_irqnum(struct irq_sim *sim, unsigned int offset);
+void irq_sim_fire(int virq);
+struct irq_domain *irq_sim_get_domain(struct irq_sim *sim);
 
 #endif /* _LINUX_IRQ_SIM_H */
