@@ -83,15 +83,16 @@ static int gpio_backlight_probe(struct platform_device *pdev)
 	struct gpio_backlight_platform_data *pdata =
 		dev_get_platdata(&pdev->dev);
 	struct backlight_properties props;
+	struct device *dev = &pdev->dev;
 	struct backlight_device *bl;
 	struct gpio_backlight *gbl;
 	int ret;
 
-	gbl = devm_kzalloc(&pdev->dev, sizeof(*gbl), GFP_KERNEL);
+	gbl = devm_kzalloc(dev, sizeof(*gbl), GFP_KERNEL);
 	if (gbl == NULL)
 		return -ENOMEM;
 
-	gbl->dev = &pdev->dev;
+	gbl->dev = dev;
 
 	if (pdata) {
 		/*
@@ -108,7 +109,7 @@ static int gpio_backlight_probe(struct platform_device *pdev)
 		ret = devm_gpio_request_one(gbl->dev, pdata->gpio, flags,
 					    pdata ? pdata->name : "backlight");
 		if (ret < 0) {
-			dev_err(&pdev->dev, "unable to request GPIO\n");
+			dev_err(dev, "unable to request GPIO\n");
 			return ret;
 		}
 		gbl->gpiod = gpio_to_desc(pdata->gpio);
@@ -123,11 +124,10 @@ static int gpio_backlight_probe(struct platform_device *pdev)
 	memset(&props, 0, sizeof(props));
 	props.type = BACKLIGHT_RAW;
 	props.max_brightness = 1;
-	bl = devm_backlight_device_register(&pdev->dev, dev_name(&pdev->dev),
-					&pdev->dev, gbl, &gpio_backlight_ops,
-					&props);
+	bl = devm_backlight_device_register(dev, dev_name(dev), dev, gbl,
+					    &gpio_backlight_ops, &props);
 	if (IS_ERR(bl)) {
-		dev_err(&pdev->dev, "failed to register backlight\n");
+		dev_err(dev, "failed to register backlight\n");
 		return PTR_ERR(bl);
 	}
 
