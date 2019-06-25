@@ -54,30 +54,6 @@ static const struct backlight_ops gpio_backlight_ops = {
 	.check_fb	= gpio_backlight_check_fb,
 };
 
-static int gpio_backlight_probe_prop(struct platform_device *pdev,
-				     struct gpio_backlight *gbl)
-{
-	struct device *dev = &pdev->dev;
-	enum gpiod_flags flags;
-	int ret;
-
-	gbl->def_value = device_property_read_bool(dev, "default-on");
-	flags = gbl->def_value ? GPIOD_OUT_HIGH : GPIOD_OUT_LOW;
-
-	gbl->gpiod = devm_gpiod_get(dev, NULL, flags);
-	if (IS_ERR(gbl->gpiod)) {
-		ret = PTR_ERR(gbl->gpiod);
-
-		if (ret != -EPROBE_DEFER) {
-			dev_err(dev,
-				"Error: The gpios parameter is missing or invalid.\n");
-		}
-		return ret;
-	}
-
-	return 0;
-}
-
 static int gpio_backlight_probe(struct platform_device *pdev)
 {
 	struct gpio_backlight_platform_data *pdata =
@@ -86,6 +62,7 @@ static int gpio_backlight_probe(struct platform_device *pdev)
 	struct device *dev = &pdev->dev;
 	struct backlight_device *bl;
 	struct gpio_backlight *gbl;
+	enum gpiod_flags flags;
 	int ret;
 
 	gbl = devm_kzalloc(dev, sizeof(*gbl), GFP_KERNEL);
@@ -116,9 +93,19 @@ static int gpio_backlight_probe(struct platform_device *pdev)
 		if (!gbl->gpiod)
 			return -EINVAL;
 	} else {
-		ret = gpio_backlight_probe_prop(pdev, gbl);
-		if (ret)
+		gbl->def_value = device_property_read_bool(dev, "default-on");
+		flags = gbl->def_value ? GPIOD_OUT_HIGH : GPIOD_OUT_LOW;
+
+		gbl->gpiod = devm_gpiod_get(dev, NULL, flags);
+		if (IS_ERR(gbl->gpiod)) {
+			ret = PTR_ERR(gbl->gpiod);
+
+			if (ret != -EPROBE_DEFER) {
+				dev_err(dev,
+					"Error: The gpios parameter is missing or invalid.\n");
+			}
 			return ret;
+		}
 	}
 
 	memset(&props, 0, sizeof(props));
