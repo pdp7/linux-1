@@ -24,6 +24,7 @@
 #include <linux/regmap.h>
 #include <linux/pm_runtime.h>
 #include <linux/gpio/consumer.h>
+#include <linux/regulator/consumer.h>
 
 /* Address pointer is 16 bit. */
 #define AT24_FLAG_ADDR16	BIT(7)
@@ -608,6 +609,34 @@ static int at24_probe(struct i2c_client *client)
 	if (device_property_present(dev, "no-read-rollover"))
 		flags |= AT24_FLAG_NO_RDROL;
 
+	{
+		struct regulator *reg;
+
+		printk("BGBG %s %d\n", __func__, __LINE__);
+
+		reg = devm_regulator_get(dev, "vcc");
+		if (IS_ERR(reg)) {
+			printk("BGBG %s reg bad %ld\n", __func__, PTR_ERR(reg));
+		} else {
+			err = regulator_enable(reg);
+			if (err) {
+				printk("BGBG %s %d bad en %d\n", __func__, __LINE__, err);
+				goto dalej;
+			}
+
+			printk("BGBG %s reg good\n", __func__);
+			printk("BGBG get voltage %d\n", regulator_get_voltage(reg));
+			printk("BGBG set to 800000\n");
+			regulator_set_voltage(reg, 800000, 800050);
+			printk("BGBG set to 2375000\n");
+			regulator_set_voltage(reg, 2374000, 2375000);
+			printk("BGBG set to 1500000\n");
+			regulator_set_voltage(reg, 1500000, 1550000);
+			printk("BGBG set to 2375000\n");
+			regulator_set_voltage(reg, 2374000, 2375000);
+		}
+	}
+dalej:
 	err = device_property_read_u32(dev, "address-width", &addrw);
 	if (!err) {
 		switch (addrw) {

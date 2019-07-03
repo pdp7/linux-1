@@ -243,6 +243,8 @@
 		compatible = "atmel,24c256";
 		reg = <0x50>;
 
+		vcc-supply = <&max77650_sbb0>;
+
 		#address-cells = <1>;
 		#size-cells = <1>;
 		baseboard_data: baseboard_data@0 {
