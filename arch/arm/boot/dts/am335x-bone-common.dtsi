@@ -6,6 +6,8 @@
  * published by the Free Software Foundation.
  */
 
+#include <dt-bindings/interrupt-controller/irq.h>
+
 / {
 	cpus {
 		cpu@0 {
@@ -255,6 +257,38 @@
 
 	status = "okay";
 	clock-frequency = <100000>;
+
+	pmic: pmic@48 {
+		compatible = "maxim,max77650";
+		reg = <0x48>;
+
+		interrupt-controller;
+		interrupt-parent = <&gpio2>;
+		#interrupt-cells = <2>;
+		interrupts = <3 IRQ_TYPE_LEVEL_LOW>;
+
+		gpio-controller;
+		#gpio-cells = <2>;
+		gpio-line-names = "max77650-charger";
+
+		regulators {
+			compatible = "maxim,max77650-regulator";
+
+			max77650_ldo: regulator@0 {
+				regulator-compatible = "ldo";
+				regulator-name = "max77650-ldo";
+				regulator-min-microvolt = <1350000>;
+				regulator-max-microvolt = <2937500>;
+			};
+
+			max77650_sbb0: regulator@1 {
+				regulator-compatible = "sbb0";
+				regulator-name = "max77650-sbb0";
+				regulator-min-microvolt = <800000>;
+				regulator-max-microvolt = <2375000>;
+			};
+		};
+	};
 };
 
 
