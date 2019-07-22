@@ -19,9 +19,7 @@
 #include <linux/slab.h>
 
 struct gpio_backlight {
-	struct device *dev;
 	struct device *fbdev;
-
 	struct gpio_desc *gpiod;
 	int def_value;
 };
@@ -68,8 +66,6 @@ static int gpio_backlight_probe(struct platform_device *pdev)
 	gbl = devm_kzalloc(&pdev->dev, sizeof(*gbl), GFP_KERNEL);
 	if (gbl == NULL)
 		return -ENOMEM;
-
-	gbl->dev = &pdev->dev;
 
 	if (pdata)
 		gbl->fbdev = pdata->fbdev;
