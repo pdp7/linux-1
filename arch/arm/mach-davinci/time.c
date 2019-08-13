@@ -79,6 +79,15 @@ enum {
 #define TGCR_UNRESET                 0x1
 #define TGCR_RESET_MASK              0x3
 
+static int bgbg = 100;
+
+#define __bg_writel(value, addr) \
+do { \
+	if (bgbg-- > 0) \
+		printk("BGBG %s %d 0x%08x -> %px", __func__, __LINE__, value, addr); \
+	__raw_writel(value, addr); \
+} while (0)
+
 struct timer_s {
 	char *name;
 	unsigned int id;
@@ -125,18 +134,18 @@ static int timer32_config(struct timer_s *t)
 		 * to 0 on overflow).  This assumes that the clocksource
 		 * is setup to count to 2^32-1 before wrapping around to 0.
 		 */
-		__raw_writel(__raw_readl(t->base + t->tim_off) + t->period,
+		__bg_writel(__raw_readl(t->base + t->tim_off) + t->period,
 			t->base + dtip[event_timer].cmp_off);
 	} else {
 		tcr = __raw_readl(t->base + TCR);
 
 		/* disable timer */
 		tcr &= ~(TCR_ENAMODE_MASK << t->enamode_shift);
-		__raw_writel(tcr, t->base + TCR);
+		__bg_writel(tcr, t->base + TCR);
 
 		/* reset counter to zero, set new period */
-		__raw_writel(0, t->base + t->tim_off);
-		__raw_writel(t->period, t->base + t->prd_off);
+		__bg_writel(0, t->base + t->tim_off);
+		__bg_writel(t->period, t->base + t->prd_off);
 
 		/* Set enable mode */
 		if (t->opts & TIMER_OPTS_ONESHOT)
@@ -144,7 +153,7 @@ static int timer32_config(struct timer_s *t)
 		else if (t->opts & TIMER_OPTS_PERIODIC)
 			tcr |= TCR_ENAMODE_PERIODIC << t->enamode_shift;
 
-		__raw_writel(tcr, t->base + TCR);
+		__bg_writel(tcr, t->base + TCR);
 	}
 	return 0;
 }
@@ -204,24 +213,24 @@ static void __init timer_init(void)
 			continue;
 
 		/* Disabled, Internal clock source */
-		__raw_writel(0, base[i] + TCR);
+		__bg_writel(0, base[i] + TCR);
 
 		/* reset both timers, no pre-scaler for timer34 */
 		tgcr = 0;
-		__raw_writel(tgcr, base[i] + TGCR);
+		__bg_writel(tgcr, base[i] + TGCR);
 
 		/* Set both timers to unchained 32-bit */
 		tgcr = TGCR_TIMMODE_32BIT_UNCHAINED << TGCR_TIMMODE_SHIFT;
-		__raw_writel(tgcr, base[i] + TGCR);
+		__bg_writel(tgcr, base[i] + TGCR);
 
 		/* Unreset timers */
 		tgcr |= (TGCR_UNRESET << TGCR_TIM12RS_SHIFT) |
 			(TGCR_UNRESET << TGCR_TIM34RS_SHIFT);
-		__raw_writel(tgcr, base[i] + TGCR);
+		__bg_writel(tgcr, base[i] + TGCR);
 
 		/* Init both counters to zero */
-		__raw_writel(0, base[i] + TIM12);
-		__raw_writel(0, base[i] + TIM34);
+		__bg_writel(0, base[i] + TIM12);
+		__bg_writel(0, base[i] + TIM34);
 	}
 
 	/* Init of each timer as a 32-bit timer */
