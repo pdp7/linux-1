@@ -15,6 +15,15 @@
 #include <linux/of_irq.h>
 #include <linux/sched_clock.h>
 
+static int bgbg = 100;
+
+#define __bg_writel(value, addr) \
+do { \
+	if (bgbg-- > 0) \
+		printk("BGBG %s %d 0x%08x -> %px", __func__, __LINE__, value, addr); \
+	writel_relaxed(value, addr); \
+} while (0)
+
 #include <clocksource/timer-davinci.h>
 
 #undef pr_fmt
@@ -80,7 +89,7 @@ davinci_clockevent_read(struct davinci_clockevent *clockevent,
 static void davinci_clockevent_write(struct davinci_clockevent *clockevent,
 				     unsigned int reg, unsigned int val)
 {
-	writel_relaxed(val, clockevent->base + reg);
+	__bg_writel(val, clockevent->base + reg);
 }
 
 static void davinci_tim12_shutdown(void __iomem *base)
@@ -97,7 +106,7 @@ static void davinci_tim12_shutdown(void __iomem *base)
 	tcr |= DAVINCI_TIMER_ENAMODE_PERIODIC <<
 		DAVINCI_TIMER_ENAMODE_SHIFT_TIM34;
 
-	writel_relaxed(tcr, base + DAVINCI_TIMER_REG_TCR);
+	__bg_writel(tcr, base + DAVINCI_TIMER_REG_TCR);
 }
 
 static void davinci_tim12_set_oneshot(void __iomem *base)
@@ -110,7 +119,7 @@ static void davinci_tim12_set_oneshot(void __iomem *base)
 	tcr |= DAVINCI_TIMER_ENAMODE_PERIODIC <<
 		DAVINCI_TIMER_ENAMODE_SHIFT_TIM34;
 
-	writel_relaxed(tcr, base + DAVINCI_TIMER_REG_TCR);
+	__bg_writel(tcr, base + DAVINCI_TIMER_REG_TCR);
 }
 
 static int davinci_clockevent_shutdown(struct clock_event_device *dev)
@@ -203,9 +212,9 @@ static void davinci_clocksource_init_tim34(void __iomem *base)
 	tcr |= DAVINCI_TIMER_ENAMODE_ONESHOT <<
 		DAVINCI_TIMER_ENAMODE_SHIFT_TIM12;
 
-	writel_relaxed(0x0, base + DAVINCI_TIMER_REG_TIM34);
-	writel_relaxed(UINT_MAX, base + DAVINCI_TIMER_REG_PRD34);
-	writel_relaxed(tcr, base + DAVINCI_TIMER_REG_TCR);
+	__bg_writel(0x0, base + DAVINCI_TIMER_REG_TIM34);
+	__bg_writel(UINT_MAX, base + DAVINCI_TIMER_REG_PRD34);
+	__bg_writel(tcr, base + DAVINCI_TIMER_REG_TCR);
 }
 
 /*
@@ -220,24 +229,24 @@ static void davinci_clocksource_init_tim12(void __iomem *base)
 	tcr = DAVINCI_TIMER_ENAMODE_PERIODIC <<
 		DAVINCI_TIMER_ENAMODE_SHIFT_TIM12;
 
-	writel_relaxed(0x0, base + DAVINCI_TIMER_REG_TIM12);
-	writel_relaxed(UINT_MAX, base + DAVINCI_TIMER_REG_PRD12);
-	writel_relaxed(tcr, base + DAVINCI_TIMER_REG_TCR);
+	__bg_writel(0x0, base + DAVINCI_TIMER_REG_TIM12);
+	__bg_writel(UINT_MAX, base + DAVINCI_TIMER_REG_PRD12);
+	__bg_writel(tcr, base + DAVINCI_TIMER_REG_TCR);
 }
 
 static void davinci_timer_init(void __iomem *base)
 {
 	/* Set clock to internal mode and disable it. */
-	writel_relaxed(0x0, base + DAVINCI_TIMER_REG_TCR);
+	__bg_writel(0x0, base + DAVINCI_TIMER_REG_TCR);
 	/*
 	 * Reset both 32-bit timers, set no prescaler for timer 34, set the
 	 * timer to dual 32-bit unchained mode, unreset both 32-bit timers.
 	 */
-	writel_relaxed(DAVINCI_TIMER_TGCR_DEFAULT,
+	__bg_writel(DAVINCI_TIMER_TGCR_DEFAULT,
 		       base + DAVINCI_TIMER_REG_TGCR);
 	/* Init both counters to zero. */
-	writel_relaxed(0x0, base + DAVINCI_TIMER_REG_TIM12);
-	writel_relaxed(0x0, base + DAVINCI_TIMER_REG_TIM34);
+	__bg_writel(0x0, base + DAVINCI_TIMER_REG_TIM12);
+	__bg_writel(0x0, base + DAVINCI_TIMER_REG_TIM34);
 }
 
 int __init davinci_timer_register(struct clk *clk,
