@@ -166,9 +166,14 @@ davinci_clockevent_set_next_event_cmp(unsigned long cycles,
 	return 0;
 }
 
+static int bgbg = 100;
+
 static irqreturn_t davinci_timer_irq_timer(int irq, void *data)
 {
 	struct davinci_clockevent *clockevent = data;
+
+	if (bgbg-- > 0)
+		printk("BGBG %s irq: %d\n", __func__, irq);
 
 	if (!clockevent_state_oneshot(&clockevent->dev))
 		davinci_tim12_shutdown(clockevent->base);
@@ -293,7 +298,8 @@ int __init davinci_timer_register(struct clk *clk,
 		clockevent->dev.set_state_shutdown =
 				davinci_clockevent_shutdown;
 	}
-
+printk("BGBG requesting clockevent irq nr %d\n",
+	timer_cfg->irq[DAVINCI_TIMER_CLOCKEVENT_IRQ].start);
 	rv = request_irq(timer_cfg->irq[DAVINCI_TIMER_CLOCKEVENT_IRQ].start,
 			 davinci_timer_irq_timer, IRQF_TIMER,
 			 "clockevent/tim12", clockevent);
