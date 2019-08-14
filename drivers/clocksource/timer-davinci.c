@@ -128,8 +128,6 @@ static int davinci_clockevent_set_oneshot(struct clock_event_device *dev)
 {
 	struct davinci_clockevent *clockevent = to_davinci_clockevent(dev);
 
-	davinci_clockevent_write(clockevent, DAVINCI_TIMER_REG_TIM12, 0x0);
-
 	davinci_tim12_set_oneshot(clockevent->base);
 
 	return 0;
