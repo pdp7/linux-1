@@ -178,6 +178,11 @@ static irqreturn_t davinci_timer_irq_timer(int irq, void *data)
 	return IRQ_HANDLED;
 }
 
+static irqreturn_t davinci_timer_irq_freerun(int irq, void *data)
+{
+	return IRQ_HANDLED;
+}
+
 static u64 notrace davinci_timer_read_sched_clock(void)
 {
 	return readl_relaxed(davinci_clocksource.base +
@@ -326,6 +331,14 @@ int __init davinci_timer_register(struct clk *clk,
 	rv = clocksource_register_hz(&davinci_clocksource.dev, tick_rate);
 	if (rv) {
 		pr_err("Unable to register clocksource");
+		return rv;
+	}
+
+	rv = request_irq(timer_cfg->irq[DAVINCI_TIMER_CLOCKSOURCE_IRQ].start,
+			 davinci_timer_irq_freerun, IRQF_TIMER,
+			 "clocksource/tim34", NULL);
+	if (rv) {
+		pr_err("Unable to request the clocksource interrupt");
 		return rv;
 	}
 
