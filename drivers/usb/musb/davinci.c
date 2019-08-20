@@ -50,7 +50,7 @@ struct davinci_glue {
 
 static inline void phy_on(void)
 {
-	u32	phy_ctrl = __raw_readl(USB_PHY_CTRL);
+	u32 phy_ctrl = __raw_readl(USB_PHY_CTRL);
 
 	/* power everything up; start the on-chip PHY and its PLL */
 	phy_ctrl &= ~(USBPHY_OSCPDWN | USBPHY_OTGPDWN | USBPHY_PHYPDWN);
@@ -64,7 +64,7 @@ static inline void phy_on(void)
 
 static inline void phy_off(void)
 {
-	u32	phy_ctrl = __raw_readl(USB_PHY_CTRL);
+	u32 phy_ctrl = __raw_readl(USB_PHY_CTRL);
 
 	/* powerdown the on-chip PHY, its PLL, and the OTG block */
 	phy_ctrl &= ~(USBPHY_SESNDEN | USBPHY_VBDTCTEN | USBPHY_PHYPLLON);
@@ -76,7 +76,7 @@ static int dma_off = 1;
 
 static void davinci_musb_enable(struct musb *musb)
 {
-	u32	tmp, old, val;
+	u32 tmp, old, val;
 
 	/* workaround:  setup irqs through both register sets */
 	tmp = (musb->epmask & DAVINCI_USB_TX_ENDPTS_MASK)
@@ -185,10 +185,10 @@ static void davinci_musb_set_vbus(struct musb *musb, int is_on)
 
 static void otg_timer(struct timer_list *t)
 {
-	struct musb		*musb = from_timer(musb, t, dev_timer);
-	void __iomem		*mregs = musb->mregs;
-	u8			devctl;
-	unsigned long		flags;
+	struct musb *musb = from_timer(musb, t, dev_timer);
+	void __iomem *mregs = musb->mregs;
+	u8 devctl;
+	unsigned long flags;
 
 	/* We poll because DaVinci's won't expose several OTG-critical
 	* status change events (from the transceiver) otherwise.
@@ -242,13 +242,13 @@ static void otg_timer(struct timer_list *t)
 
 static irqreturn_t davinci_musb_interrupt(int irq, void *__hci)
 {
-	unsigned long	flags;
-	irqreturn_t	retval = IRQ_NONE;
-	struct musb	*musb = __hci;
-	struct usb_otg	*otg = musb->xceiv->otg;
-	void __iomem	*tibase = musb->ctrl_base;
-	struct cppi	*cppi;
-	u32		tmp;
+	unsigned long flags;
+	irqreturn_t retval = IRQ_NONE;
+	struct musb *musb = __hci;
+	struct usb_otg *otg = musb->xceiv->otg;
+	void __iomem *tibase = musb->ctrl_base;
+	struct cppi *cppi;
+	u32 tmp;
 
 	spin_lock_irqsave(&musb->lock, flags);
 
@@ -288,10 +288,10 @@ static irqreturn_t davinci_musb_interrupt(int irq, void *__hci)
 	 * Also, DRVVBUS pulses for SRP (but not at 5V) ...
 	 */
 	if (tmp & (DAVINCI_INTR_DRVVBUS << DAVINCI_USB_USBINT_SHIFT)) {
-		int	drvvbus = musb_readl(tibase, DAVINCI_USB_STAT_REG);
+		int drvvbus = musb_readl(tibase, DAVINCI_USB_STAT_REG);
 		void __iomem *mregs = musb->mregs;
-		u8	devctl = musb_readb(mregs, MUSB_DEVCTL);
-		int	err = musb->int_usb & MUSB_INTR_VBUSERROR;
+		u8 devctl = musb_readb(mregs, MUSB_DEVCTL);
+		int err = musb->int_usb & MUSB_INTR_VBUSERROR;
 
 		err = musb->int_usb & MUSB_INTR_VBUSERROR;
 		if (err) {
@@ -356,9 +356,9 @@ static int davinci_musb_set_mode(struct musb *musb, u8 mode)
 
 static int davinci_musb_init(struct musb *musb)
 {
-	void __iomem	*tibase = musb->ctrl_base;
-	u32		revision;
-	int 		ret = -ENODEV;
+	void __iomem *tibase = musb->ctrl_base;
+	u32 revision;
+	int ret = -ENODEV;
 
 	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
 	if (IS_ERR_OR_NULL(musb->xceiv)) {
@@ -423,8 +423,8 @@ unregister:
 
 static int davinci_musb_exit(struct musb *musb)
 {
-	int	maxdelay = 30;
-	u8	devctl, warn = 0;
+	int maxdelay = 30;
+	u8 devctl, warn = 0;
 
 	del_timer_sync(&musb->dev_timer);
 
@@ -493,14 +493,13 @@ static const struct platform_device_info davinci_dev_info = {
 
 static int davinci_probe(struct platform_device *pdev)
 {
-	struct resource			musb_resources[3];
-	struct musb_hdrc_platform_data	*pdata = dev_get_platdata(&pdev->dev);
-	struct platform_device		*musb;
-	struct davinci_glue		*glue;
-	struct platform_device_info	pinfo;
-	struct clk			*clk;
-
-	int				ret = -ENOMEM;
+	struct resource musb_resources[3];
+	struct musb_hdrc_platform_data *pdata = dev_get_platdata(&pdev->dev);
+	struct platform_device *musb;
+	struct davinci_glue *glue;
+	struct platform_device_info pinfo;
+	struct clk *clk;
+	int ret = -ENOMEM;
 
 	glue = devm_kzalloc(&pdev->dev, sizeof(*glue), GFP_KERNEL);
 	if (!glue)
@@ -574,7 +573,7 @@ err0:
 
 static int davinci_remove(struct platform_device *pdev)
 {
-	struct davinci_glue		*glue = platform_get_drvdata(pdev);
+	struct davinci_glue *glue = platform_get_drvdata(pdev);
 
 	platform_device_unregister(glue->musb);
 	usb_phy_generic_unregister();
