@@ -111,6 +111,14 @@ static struct platform_device davinci_nand_device = {
 	},
 };
 
+static struct gpiod_lookup_table dm355_evm_usb_id_gpio_lookup = {
+	.dev_id		= "musb-davinci",
+	.table = {
+		GPIO_LOOKUP("davinci_gpio", DM355_GPIO_nVBUS_DRV, "id", 0),
+		{ }
+	},
+};
+
 #define DM355_I2C_SDA_PIN	GPIO_TO_PIN(0, 15)
 #define DM355_I2C_SCL_PIN	GPIO_TO_PIN(0, 14)
 
@@ -419,6 +427,7 @@ static __init void dm355_evm_init(void)
 	 * but could be 0x0400008c for about 25% faster page reads.
 	 */
 
+	gpiod_add_lookup_table(&dm355_evm_usb_id_gpio_lookup);
 	gpio_request(2, "usb_id_toggle");
 	gpio_direction_output(2, USB_ID_VALUE);
 	/* irlml6401 switches over 1A in under 8 msec */

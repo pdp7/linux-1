@@ -83,6 +83,8 @@ int davinci_gpio_register(struct resource *res, int size, void *pdata);
 #define DM646X_ASYNC_EMIF_CONTROL_BASE	0x20008000
 #define DM646X_ASYNC_EMIF_CS2_SPACE_BASE 0x42000000
 
+#define DM355_GPIO_nVBUS_DRV		160
+
 int davinci_init_wdt(void);
 
 /* DM355 function declarations */
