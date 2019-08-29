@@ -79,6 +79,37 @@ struct resource *platform_get_resource(struct platform_device *dev,
 }
 EXPORT_SYMBOL_GPL(platform_get_resource);
 
+#ifdef CONFIG_HAS_IOMEM
+enum {
+	IOREMAP_TYPE_NONE,
+	IOREMAP_TYPE_NOCACHE,
+	IOREMAP_TYPE_WC,
+};
+
+static void __iomem *
+__devm_platform_ioremap_resource(struct platform_device *pdev,
+				 unsigned int index, int type)
+{
+	struct resource *res = platform_get_resource(pdev,
+						     IORESOURCE_MEM, index);
+	struct device *dev = &pdev->dev;
+	void __iomem *addr = NULL;
+
+	switch (type) {
+	case IOREMAP_TYPE_NONE:
+		addr = devm_ioremap_resource(dev, res);
+		break;
+	case IOREMAP_TYPE_NOCACHE:
+		addr = devm_ioremap_resource_nocache(dev, res);
+		break;
+	case IOREMAP_TYPE_WC:
+		addr = devm_ioremap_resource_wc(dev, res);
+		break;
+	}
+
+	return addr;
+}
+
 /**
  * devm_platform_ioremap_resource - call devm_ioremap_resource() for a platform
  *				    device
@@ -87,16 +118,45 @@ EXPORT_SYMBOL_GPL(platform_get_resource);
  *        resource management
  * @index: resource index
  */
-#ifdef CONFIG_HAS_IOMEM
 void __iomem *devm_platform_ioremap_resource(struct platform_device *pdev,
 					     unsigned int index)
 {
-	struct resource *res;
-
-	res = platform_get_resource(pdev, IORESOURCE_MEM, index);
-	return devm_ioremap_resource(&pdev->dev, res);
+	return __devm_platform_ioremap_resource(pdev, index, IOREMAP_TYPE_NONE);
 }
 EXPORT_SYMBOL_GPL(devm_platform_ioremap_resource);
+
+/**
+ * devm_platform_ioremap_resource_nocache - nocache variant of
+ *                                          devm_platform_ioremap_resource()
+ *
+ * @pdev: platform device to use both for memory resource lookup as well as
+ *        resource management
+ * @index: resource index
+ */
+void __iomem *
+devm_platform_ioremap_resource_nocache(struct platform_device *pdev,
+				       unsigned int index)
+{
+	return __devm_platform_ioremap_resource(pdev, index,
+						IOREMAP_TYPE_NOCACHE);
+}
+EXPORT_SYMBOL_GPL(devm_platform_ioremap_resource_nocache);
+
+/**
+ * devm_platform_ioremap_resource_wc - write-combined variant of
+ *                                     devm_platform_ioremap_resource()
+ *
+ * @pdev: platform device to use both for memory resource lookup as well as
+ *        resource management
+ * @index: resource index
+ */
+void __iomem *devm_platform_ioremap_resource_wc(struct platform_device *pdev,
+						unsigned int index)
+{
+	return __devm_platform_ioremap_resource(pdev, index, IOREMAP_TYPE_WC);
+}
+EXPORT_SYMBOL_GPL(devm_platform_ioremap_resource_wc);
+
 #endif /* CONFIG_HAS_IOMEM */
 
 /**
