@@ -1,0 +1,83 @@
+# SPDX-License-Identifier: GPL-2.0
+%YAML 1.2
+---
+$id: http://devicetree.org/schemas/mfd/max77650.yaml#
+$schema: http://devicetree.org/meta-schemas/core.yaml#
+
+title: MAX77650 ultra low-power PMIC from Maxim Integrated.
+
+maintainers:
+  - Bartosz Golaszewski <bgolaszewski@baylibre.com>
+
+description: |
+  This document describes the DT properties of the core MFD controller.
+
+  The GPIO-controller module is represented as part of the top-level PMIC
+  node. The device exposes a single GPIO line.
+
+  For device-tree bindings of other sub-modules (regulator, power supply,
+  LEDs and onkey) refer to the binding documents under the respective
+  sub-system directories.
+
+  For more details on GPIO bindings, please refer to the generic GPIO DT
+  binding document <devicetree/bindings/gpio/gpio.txt>.
+
+properties:
+  compatible:
+    const: maxim,max77650
+
+  reg:
+    description:
+      I2C device address.
+    maxItems: 1
+
+  interrupts:
+    description:
+      The interrupt on the parent the controller is connected to.
+    maxItems: 1
+
+  interrupt-controller: true
+
+  "#interrupt-cells":
+    const: 2
+    description:
+      The first cell is the IRQ number, the second cell is the trigger type.
+
+  gpio-controller: true
+
+  "#gpio-cells":
+    const: 2
+    description:
+      The first cell is the pin number and the second cell is used to specify
+      the gpio active state.
+
+  gpio-line-names:
+    $ref: '/schemas/types.yaml#/definitions/string-array'
+    maxItems: 1
+    description:
+      Single string containing the name of the GPIO line.
+
+required:
+  - compatible
+  - reg
+  - interrupts
+  - interrupt-controller
+  - "#interrupt-cells"
+  - gpio-controller
+  - "#gpio-cells"
+
+examples:
+  - |
+    pmic@48 {
+        compatible = "maxim,max77650";
+        reg = <0x48>;
+
+        interrupt-controller;
+        interrupt-parent = <&gpio2>;
+        #interrupt-cells = <2>;
+        interrupts = <3 IRQ_TYPE_LEVEL_LOW>;
+
+        gpio-controller;
+        #gpio-cells = <2>;
+        gpio-line-names = "max77650-charger";
+    };
