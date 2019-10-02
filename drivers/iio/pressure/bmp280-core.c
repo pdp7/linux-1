@@ -1127,7 +1127,7 @@ int bmp280_common_probe(struct device *dev,
 	pm_runtime_use_autosuspend(dev);
 	pm_runtime_put(dev);
 
-	ret = iio_device_register(indio_dev);
+	ret = devm_iio_device_register(dev, indio_dev);
 	if (ret)
 		goto out_runtime_pm_disable;
 
@@ -1149,7 +1149,6 @@ int bmp280_common_remove(struct device *dev)
 	struct iio_dev *indio_dev = dev_get_drvdata(dev);
 	struct bmp280_data *data = iio_priv(indio_dev);
 
-	iio_device_unregister(indio_dev);
 	pm_runtime_get_sync(data->dev);
 	pm_runtime_put_noidle(data->dev);
 	pm_runtime_disable(data->dev);
