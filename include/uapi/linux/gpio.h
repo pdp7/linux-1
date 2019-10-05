@@ -98,6 +98,13 @@ struct gpiohandle_request {
 	int fd;
 };
 
+struct gpiohandle_config {
+	__u32 flags;
+	__u32 padding[4]; /* padding for future use */
+};
+
+#define GPIOHANDLE_SET_CONFIG_IOCTL _IOW(0xB4, 0x10, struct gpiohandle_config)
+
 /**
  * struct gpiohandle_data - Information of values on a GPIO handle
  * @values: when getting the state of lines this contains the current

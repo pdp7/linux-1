@@ -432,6 +432,7 @@ static long linehandle_ioctl(struct file *filep, unsigned int cmd,
 	struct linehandle_state *lh = filep->private_data;
 	void __user *ip = (void __user *)arg;
 	struct gpiohandle_data ghd;
+	struct gpiohandle_config gcnf;
 	DECLARE_BITMAP(vals, GPIOHANDLES_MAX);
 	int i;
 
@@ -476,7 +477,21 @@ static long linehandle_ioctl(struct file *filep, unsigned int cmd,
 					      lh->descs,
 					      NULL,
 					      vals);
+	} else if (cmd = GPIOHANDLE_SET_CONFIG_IOCTL) {
+		if (copy_from_user(&gcnf, ip, sizeof(gcnf)))
+			return -EFAULT;
+
+		if ((gcnf.flags & GPIOHANDLE_REQUEST_INPUT) &&
+		    (gcnf.flags & GPIOHANDLE_REQUEST_OUTPUT))
+			return -EINVAL;
+
+		if
+
+		for (i = 0; i < lh->numdescs; i++) {
+
+		}
 	}
+
 	return -EINVAL;
 }
 
