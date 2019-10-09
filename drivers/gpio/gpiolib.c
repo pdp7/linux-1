@@ -426,6 +426,49 @@ struct linehandle_state {
 	GPIOHANDLE_REQUEST_OPEN_DRAIN | \
 	GPIOHANDLE_REQUEST_OPEN_SOURCE)
 
+static int linehandle_validate_flags(u32 flags)
+{
+	/* Return an error if an unknown flag is set */
+	if (flags & ~GPIOHANDLE_REQUEST_VALID_FLAGS)
+		return -EINVAL;
+
+	/*
+	 * Do not allow both INPUT & OUTPUT flags to be set as they are
+	 * contradictory.
+	 */
+	if ((flags & GPIOHANDLE_REQUEST_INPUT) &&
+	    (flags & GPIOHANDLE_REQUEST_OUTPUT))
+		return -EINVAL;
+
+	/* Same with pull-up and pull-down. */
+	if ((flags & GPIOHANDLE_REQUEST_PULL_UP) &&
+	    (flags & GPIOHANDLE_REQUEST_PULL_DOWN))
+		return -EINVAL;
+
+	/*
+	 * Do not allow OPEN_SOURCE & OPEN_DRAIN flags in a single request. If
+	 * the hardware actually supports enabling both at the same time the
+	 * electrical result would be disastrous.
+	 */
+	if ((flags & GPIOHANDLE_REQUEST_OPEN_DRAIN) &&
+	    (flags & GPIOHANDLE_REQUEST_OPEN_SOURCE))
+		return -EINVAL;
+
+	/* OPEN_DRAIN and OPEN_SOURCE flags only make sense for output mode. */
+	if (!(flags & GPIOHANDLE_REQUEST_OUTPUT) &&
+	    ((flags & GPIOHANDLE_REQUEST_OPEN_DRAIN) ||
+	     (flags & GPIOHANDLE_REQUEST_OPEN_SOURCE)))
+		return -EINVAL;
+
+	/* PULL_UP and PULL_DOWN flags only make sense for input mode. */
+	if (!(flags & GPIOHANDLE_REQUEST_INPUT) &&
+	    ((flags & GPIOHANDLE_REQUEST_PULL_UP) ||
+	     (flags & GPIOHANDLE_REQUEST_PULL_DOWN)))
+		return -EINVAL;
+
+	return 0;
+}
+
 static long linehandle_ioctl(struct file *filep, unsigned int cmd,
 			     unsigned long arg)
 {
@@ -433,12 +476,14 @@ static long linehandle_ioctl(struct file *filep, unsigned int cmd,
 	void __user *ip = (void __user *)arg;
 	struct gpiohandle_data ghd;
 	struct gpiohandle_config gcnf;
+	struct gpio_desc *desc;
 	DECLARE_BITMAP(vals, GPIOHANDLES_MAX);
-	int i;
+	int i, ret;
+	u32 lflags;
 
 	if (cmd == GPIOHANDLE_GET_LINE_VALUES_IOCTL) {
 		/* NOTE: It's ok to read values of output lines. */
-		int ret = gpiod_get_array_value_complex(false,
+		ret = gpiod_get_array_value_complex(false,
 							true,
 							lh->numdescs,
 							lh->descs,
@@ -477,19 +522,48 @@ static long linehandle_ioctl(struct file *filep, unsigned int cmd,
 					      lh->descs,
 					      NULL,
 					      vals);
-	} else if (cmd = GPIOHANDLE_SET_CONFIG_IOCTL) {
+	} else if (cmd == GPIOHANDLE_SET_CONFIG_IOCTL) {
 		if (copy_from_user(&gcnf, ip, sizeof(gcnf)))
 			return -EFAULT;
 
-		if ((gcnf.flags & GPIOHANDLE_REQUEST_INPUT) &&
-		    (gcnf.flags & GPIOHANDLE_REQUEST_OUTPUT))
-			return -EINVAL;
-
-		if
+		lflags = gcnf.flags;
+		ret = linehandle_validate_flags(lflags);
+		if (ret)
+			return ret;
 
 		for (i = 0; i < lh->numdescs; i++) {
+			desc = lh->descs[i];
+			if (lflags & GPIOHANDLE_REQUEST_ACTIVE_LOW)
+				set_bit(FLAG_ACTIVE_LOW, &desc->flags);
+			if (lflags & GPIOHANDLE_REQUEST_OPEN_DRAIN)
+				set_bit(FLAG_OPEN_DRAIN, &desc->flags);
+			if (lflags & GPIOHANDLE_REQUEST_OPEN_SOURCE)
+				set_bit(FLAG_OPEN_SOURCE, &desc->flags);
+			if (lflags & GPIOHANDLE_REQUEST_PULL_DOWN)
+				set_bit(FLAG_PULL_DOWN, &desc->flags);
+			if (lflags & GPIOHANDLE_REQUEST_PULL_UP)
+				set_bit(FLAG_PULL_UP, &desc->flags);
 
+			ret = gpiod_set_transitory(desc, false);
+			if (ret < 0)
+				return ret;
+			/*
+			 * Lines have to be requested explicitly for input
+			 * or output, else the line will be treated "as is".
+			 */
+			if (lflags & GPIOHANDLE_REQUEST_OUTPUT) {
+				int val = !!gcnf.default_values[i];
+
+				ret = gpiod_direction_output(desc, val);
+				if (ret)
+					return ret;
+			} else if (lflags & GPIOHANDLE_REQUEST_INPUT) {
+				ret = gpiod_direction_input(desc);
+				if (ret)
+					return ret;
+			}
 		}
+		return 0;
 	}
 
 	return -EINVAL;
@@ -541,38 +615,9 @@ static int linehandle_create(struct gpio_device *gdev, void __user *ip)
 		return -EINVAL;
 
 	lflags = handlereq.flags;
-
-	/* Return an error if an unknown flag is set */
-	if (lflags & ~GPIOHANDLE_REQUEST_VALID_FLAGS)
-		return -EINVAL;
-
-	/*
-	 * Do not allow both INPUT & OUTPUT flags to be set as they are
-	 * contradictory.
-	 */
-	if ((lflags & GPIOHANDLE_REQUEST_INPUT) &&
-	    (lflags & GPIOHANDLE_REQUEST_OUTPUT))
-		return -EINVAL;
-
-	/* Same with pull-up and pull-down. */
-	if ((lflags & GPIOHANDLE_REQUEST_PULL_UP) &&
-	    (lflags & GPIOHANDLE_REQUEST_PULL_DOWN))
-		return -EINVAL;
-
-	/*
-	 * Do not allow OPEN_SOURCE & OPEN_DRAIN flags in a single request. If
-	 * the hardware actually supports enabling both at the same time the
-	 * electrical result would be disastrous.
-	 */
-	if ((lflags & GPIOHANDLE_REQUEST_OPEN_DRAIN) &&
-	    (lflags & GPIOHANDLE_REQUEST_OPEN_SOURCE))
-		return -EINVAL;
-
-	/* OPEN_DRAIN and OPEN_SOURCE flags only make sense for output mode. */
-	if (!(lflags & GPIOHANDLE_REQUEST_OUTPUT) &&
-	    ((lflags & GPIOHANDLE_REQUEST_OPEN_DRAIN) ||
-	     (lflags & GPIOHANDLE_REQUEST_OPEN_SOURCE)))
-		return -EINVAL;
+	ret = linehandle_validate_flags(lflags);
+	if (ret)
+		return ret;
 
 	lh = kzalloc(sizeof(*lh), GFP_KERNEL);
 	if (!lh)
@@ -935,8 +980,20 @@ static int lineevent_create(struct gpio_device *gdev, void __user *ip)
 	/* This is just wrong: we don't look for events on output lines */
 	if ((lflags & GPIOHANDLE_REQUEST_OUTPUT) ||
 	    (lflags & GPIOHANDLE_REQUEST_OPEN_DRAIN) ||
-	    (lflags & GPIOHANDLE_REQUEST_OPEN_SOURCE) ||
-	    (lflags & GPIOHANDLE_REQUEST_PULL_UP) ||
+	    (lflags & GPIOHANDLE_REQUEST_OPEN_SOURCE))
+		return -EINVAL;
+
+	/* PULL_UP and PULL_DOWN flags only make sense for input mode. */
+	if (!(lflags & GPIOHANDLE_REQUEST_INPUT) &&
+	    ((lflags & GPIOHANDLE_REQUEST_PULL_UP) ||
+	     (lflags & GPIOHANDLE_REQUEST_PULL_DOWN)))
+		return -EINVAL;
+
+	/*
+	 * Do not allow both pull-up and pull-down flags to be set as they
+	 *  are contradictory.
+	 */
+	if ((lflags & GPIOHANDLE_REQUEST_PULL_UP) &&
 	    (lflags & GPIOHANDLE_REQUEST_PULL_DOWN))
 		return -EINVAL;
 
@@ -966,6 +1023,10 @@ static int lineevent_create(struct gpio_device *gdev, void __user *ip)
 
 	if (lflags & GPIOHANDLE_REQUEST_ACTIVE_LOW)
 		set_bit(FLAG_ACTIVE_LOW, &desc->flags);
+	if (lflags & GPIOHANDLE_REQUEST_PULL_DOWN)
+		set_bit(FLAG_PULL_DOWN, &desc->flags);
+	if (lflags & GPIOHANDLE_REQUEST_PULL_UP)
+		set_bit(FLAG_PULL_UP, &desc->flags);
 
 	ret = gpiod_direction_input(desc);
 	if (ret)
