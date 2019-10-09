@@ -485,8 +485,6 @@ static long linehandle_ioctl(struct file *filep, unsigned int cmd,
 		    (gcnf.flags & GPIOHANDLE_REQUEST_OUTPUT))
 			return -EINVAL;
 
-		if
-
 		for (i = 0; i < lh->numdescs; i++) {
 
 		}
@@ -935,8 +933,14 @@ static int lineevent_create(struct gpio_device *gdev, void __user *ip)
 	/* This is just wrong: we don't look for events on output lines */
 	if ((lflags & GPIOHANDLE_REQUEST_OUTPUT) ||
 	    (lflags & GPIOHANDLE_REQUEST_OPEN_DRAIN) ||
-	    (lflags & GPIOHANDLE_REQUEST_OPEN_SOURCE) ||
-	    (lflags & GPIOHANDLE_REQUEST_PULL_UP) ||
+	    (lflags & GPIOHANDLE_REQUEST_OPEN_SOURCE))
+		return -EINVAL;
+
+	/*
+	 * Do not allow both pull-up and pull-down flags to be set as they
+	 *  are contradictory.
+	 */
+	if ((lflags & GPIOHANDLE_REQUEST_PULL_UP) &&
 	    (lflags & GPIOHANDLE_REQUEST_PULL_DOWN))
 		return -EINVAL;
 
@@ -966,6 +970,10 @@ static int lineevent_create(struct gpio_device *gdev, void __user *ip)
 
 	if (lflags & GPIOHANDLE_REQUEST_ACTIVE_LOW)
 		set_bit(FLAG_ACTIVE_LOW, &desc->flags);
+	if (lflags & GPIOHANDLE_REQUEST_PULL_DOWN)
+		set_bit(FLAG_PULL_DOWN, &desc->flags);
+	if (lflags & GPIOHANDLE_REQUEST_PULL_UP)
+		set_bit(FLAG_PULL_UP, &desc->flags);
 
 	ret = gpiod_direction_input(desc);
 	if (ret)
