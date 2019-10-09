@@ -470,8 +470,10 @@ static long linehandle_ioctl(struct file *filep, unsigned int cmd,
 	void __user *ip = (void __user *)arg;
 	struct gpiohandle_data ghd;
 	struct gpiohandle_config gcnf;
+	struct gpio_desc *desc;
 	DECLARE_BITMAP(vals, GPIOHANDLES_MAX);
 	int i, ret;
+	u32 lflags;
 
 	if (cmd == GPIOHANDLE_GET_LINE_VALUES_IOCTL) {
 		/* NOTE: It's ok to read values of output lines. */
@@ -518,13 +520,44 @@ static long linehandle_ioctl(struct file *filep, unsigned int cmd,
 		if (copy_from_user(&gcnf, ip, sizeof(gcnf)))
 			return -EFAULT;
 
-		ret = linehandle_validate_flags(gcnf.flags);
+		lflags = gcnf.flags;
+		ret = linehandle_validate_flags(lflags);
 		if (ret)
 			return ret;
 
 		for (i = 0; i < lh->numdescs; i++) {
+			desc = lh->descs[i];
+			if (lflags & GPIOHANDLE_REQUEST_ACTIVE_LOW)
+				set_bit(FLAG_ACTIVE_LOW, &desc->flags);
+			if (lflags & GPIOHANDLE_REQUEST_OPEN_DRAIN)
+				set_bit(FLAG_OPEN_DRAIN, &desc->flags);
+			if (lflags & GPIOHANDLE_REQUEST_OPEN_SOURCE)
+				set_bit(FLAG_OPEN_SOURCE, &desc->flags);
+			if (lflags & GPIOHANDLE_REQUEST_PULL_DOWN)
+				set_bit(FLAG_PULL_DOWN, &desc->flags);
+			if (lflags & GPIOHANDLE_REQUEST_PULL_UP)
+				set_bit(FLAG_PULL_UP, &desc->flags);
 
+			ret = gpiod_set_transitory(desc, false);
+			if (ret < 0)
+				return ret;
+			/*
+			 * Lines have to be requested explicitly for input
+			 * or output, else the line will be treated "as is".
+			 */
+			if (lflags & GPIOHANDLE_REQUEST_OUTPUT) {
+				int val = !!gcnf.default_values[i];
+
+				ret = gpiod_direction_output(desc, val);
+				if (ret)
+					return ret;
+			} else if (lflags & GPIOHANDLE_REQUEST_INPUT) {
+				ret = gpiod_direction_input(desc);
+				if (ret)
+					return ret;
+			}
 		}
+		return 0;
 	}
 
 	return -EINVAL;
