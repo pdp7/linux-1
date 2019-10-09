@@ -100,6 +100,7 @@ struct gpiohandle_request {
 
 struct gpiohandle_config {
 	__u32 flags;
+	__u8 default_values[GPIOHANDLES_MAX];
 	__u32 padding[4]; /* padding for future use */
 };
 
