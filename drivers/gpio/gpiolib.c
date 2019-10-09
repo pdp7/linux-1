@@ -460,6 +460,12 @@ static int linehandle_validate_flags(u32 flags)
 	     (flags & GPIOHANDLE_REQUEST_OPEN_SOURCE)))
 		return -EINVAL;
 
+	/* PULL_UP and PULL_DOWN flags only make sense for input mode. */
+	if (!(flags & GPIOHANDLE_REQUEST_INPUT) &&
+	    ((flags & GPIOHANDLE_REQUEST_PULL_UP) ||
+	     (flags & GPIOHANDLE_REQUEST_PULL_DOWN)))
+		return -EINVAL;
+
 	return 0;
 }
 
