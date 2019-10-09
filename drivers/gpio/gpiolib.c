@@ -426,6 +426,43 @@ struct linehandle_state {
 	GPIOHANDLE_REQUEST_OPEN_DRAIN | \
 	GPIOHANDLE_REQUEST_OPEN_SOURCE)
 
+static int linehandle_validate_flags(u32 flags)
+{
+	/* Return an error if an unknown flag is set */
+	if (flags & ~GPIOHANDLE_REQUEST_VALID_FLAGS)
+		return -EINVAL;
+
+	/*
+	 * Do not allow both INPUT & OUTPUT flags to be set as they are
+	 * contradictory.
+	 */
+	if ((flags & GPIOHANDLE_REQUEST_INPUT) &&
+	    (flags & GPIOHANDLE_REQUEST_OUTPUT))
+		return -EINVAL;
+
+	/* Same with pull-up and pull-down. */
+	if ((flags & GPIOHANDLE_REQUEST_PULL_UP) &&
+	    (flags & GPIOHANDLE_REQUEST_PULL_DOWN))
+		return -EINVAL;
+
+	/*
+	 * Do not allow OPEN_SOURCE & OPEN_DRAIN flags in a single request. If
+	 * the hardware actually supports enabling both at the same time the
+	 * electrical result would be disastrous.
+	 */
+	if ((flags & GPIOHANDLE_REQUEST_OPEN_DRAIN) &&
+	    (flags & GPIOHANDLE_REQUEST_OPEN_SOURCE))
+		return -EINVAL;
+
+	/* OPEN_DRAIN and OPEN_SOURCE flags only make sense for output mode. */
+	if (!(flags & GPIOHANDLE_REQUEST_OUTPUT) &&
+	    ((flags & GPIOHANDLE_REQUEST_OPEN_DRAIN) ||
+	     (flags & GPIOHANDLE_REQUEST_OPEN_SOURCE)))
+		return -EINVAL;
+
+	return 0;
+}
+
 static long linehandle_ioctl(struct file *filep, unsigned int cmd,
 			     unsigned long arg)
 {
@@ -434,11 +471,11 @@ static long linehandle_ioctl(struct file *filep, unsigned int cmd,
 	struct gpiohandle_data ghd;
 	struct gpiohandle_config gcnf;
 	DECLARE_BITMAP(vals, GPIOHANDLES_MAX);
-	int i;
+	int i, ret;
 
 	if (cmd == GPIOHANDLE_GET_LINE_VALUES_IOCTL) {
 		/* NOTE: It's ok to read values of output lines. */
-		int ret = gpiod_get_array_value_complex(false,
+		ret = gpiod_get_array_value_complex(false,
 							true,
 							lh->numdescs,
 							lh->descs,
@@ -477,13 +514,13 @@ static long linehandle_ioctl(struct file *filep, unsigned int cmd,
 					      lh->descs,
 					      NULL,
 					      vals);
-	} else if (cmd = GPIOHANDLE_SET_CONFIG_IOCTL) {
+	} else if (cmd == GPIOHANDLE_SET_CONFIG_IOCTL) {
 		if (copy_from_user(&gcnf, ip, sizeof(gcnf)))
 			return -EFAULT;
 
-		if ((gcnf.flags & GPIOHANDLE_REQUEST_INPUT) &&
-		    (gcnf.flags & GPIOHANDLE_REQUEST_OUTPUT))
-			return -EINVAL;
+		ret = linehandle_validate_flags(gcnf.flags);
+		if (ret)
+			return ret;
 
 		for (i = 0; i < lh->numdescs; i++) {
 
@@ -539,38 +576,9 @@ static int linehandle_create(struct gpio_device *gdev, void __user *ip)
 		return -EINVAL;
 
 	lflags = handlereq.flags;
-
-	/* Return an error if an unknown flag is set */
-	if (lflags & ~GPIOHANDLE_REQUEST_VALID_FLAGS)
-		return -EINVAL;
-
-	/*
-	 * Do not allow both INPUT & OUTPUT flags to be set as they are
-	 * contradictory.
-	 */
-	if ((lflags & GPIOHANDLE_REQUEST_INPUT) &&
-	    (lflags & GPIOHANDLE_REQUEST_OUTPUT))
-		return -EINVAL;
-
-	/* Same with pull-up and pull-down. */
-	if ((lflags & GPIOHANDLE_REQUEST_PULL_UP) &&
-	    (lflags & GPIOHANDLE_REQUEST_PULL_DOWN))
-		return -EINVAL;
-
-	/*
-	 * Do not allow OPEN_SOURCE & OPEN_DRAIN flags in a single request. If
-	 * the hardware actually supports enabling both at the same time the
-	 * electrical result would be disastrous.
-	 */
-	if ((lflags & GPIOHANDLE_REQUEST_OPEN_DRAIN) &&
-	    (lflags & GPIOHANDLE_REQUEST_OPEN_SOURCE))
-		return -EINVAL;
-
-	/* OPEN_DRAIN and OPEN_SOURCE flags only make sense for output mode. */
-	if (!(lflags & GPIOHANDLE_REQUEST_OUTPUT) &&
-	    ((lflags & GPIOHANDLE_REQUEST_OPEN_DRAIN) ||
-	     (lflags & GPIOHANDLE_REQUEST_OPEN_SOURCE)))
-		return -EINVAL;
+	ret = linehandle_validate_flags(lflags);
+	if (ret)
+		return ret;
 
 	lh = kzalloc(sizeof(*lh), GFP_KERNEL);
 	if (!lh)
